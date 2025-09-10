@@ -26,7 +26,6 @@ exports.handler = async (event, context) => {
 
     const response = await mercadopago.payment.create(paymentData);
     
-    // --- CORREÇÃO: Retorna a resposta completa da API ---
     return {
       statusCode: 200,
       body: JSON.stringify(response.body),
