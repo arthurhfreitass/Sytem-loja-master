@@ -1,5 +1,3 @@
-// index.js
-
 // Dados do produto - Açaí
 const acaiProduct = {
     id: 1,
@@ -63,8 +61,14 @@ const addToCartPriceSpan = document.getElementById('add-to-cart-price');
 const cartItemCountEl = document.getElementById('cart-item-count');
 const checkoutFooterButton = document.getElementById('checkout-footer-button');
 
+// Referências aos elementos da modal
+const modal = document.getElementById('cart-confirm-modal');
+const continueShoppingBtn = document.getElementById('continue-shopping-btn');
+const goToCartBtn = document.getElementById('go-to-cart-btn');
+
 // --- Funções Principais ---
 
+// Renderiza as opções de tamanho e extras na página.
 function renderOptions() {
     sizeOptionsContainer.innerHTML = '';
     acaiProduct.sizes.forEach((size, index) => {
@@ -91,6 +95,7 @@ function renderOptions() {
     });
 }
 
+// Atualiza a lista de complementos inclusos com base no tamanho selecionado.
 function updateIncludedToppings() {
     const selectedSizeRadio = document.querySelector('input[name="acai-size"]:checked');
     
@@ -118,16 +123,27 @@ function updateIncludedToppings() {
     });
 }
 
+// Atualiza a descrição, o preço e a visibilidade dos botões de ação.
 function updateSelection() {
     const selectedSizeRadio = document.querySelector('input[name="acai-size"]:checked');
+    const cart = JSON.parse(localStorage.getItem('tempCart')) || [];
     
+    // Visibilidade do botão de Adicionar ao Carrinho
     if (selectedSizeRadio) {
         addToCartButton.style.display = 'flex';
     } else {
         addToCartButton.style.display = 'none';
         productDescriptionEl.textContent = '';
     }
+
+    // Visibilidade do botão de Finalizar Pedido
+    if (cart.length > 0) {
+        checkoutFooterButton.style.display = 'flex';
+    } else {
+        checkoutFooterButton.style.display = 'none';
+    }
     
+    // Calcula o preço total
     if (selectedSizeRadio) {
         let totalPrice = parseFloat(selectedSizeRadio.dataset.price);
         const sizeIndex = parseInt(selectedSizeRadio.dataset.sizeIndex, 10);
@@ -159,6 +175,7 @@ function updateSelection() {
     }
 }
 
+// Adiciona o item ao carrinho e exibe a modal de confirmação.
 function addToCart() {
     const selectedSizeRadio = document.querySelector('input[name="acai-size"]:checked');
     if (!selectedSizeRadio) return;
@@ -190,9 +207,13 @@ function addToCart() {
     localStorage.setItem('tempCart', JSON.stringify(cart));
 
     updateCartCount();
-    resetSelections();
+    
+    // Exibe a modal de confirmação e esconde o botão de adicionar
+    addToCartButton.style.display = 'none';
+    modal.style.display = 'flex';
 }
 
+// Limpa todas as seleções de opções.
 function resetSelections() {
     document.querySelectorAll('input[name="acai-size"]').forEach(radio => radio.checked = false);
     document.querySelectorAll('input[name="acai-included"]').forEach(checkbox => checkbox.checked = false);
@@ -202,19 +223,13 @@ function resetSelections() {
     updateSelection();
 }
 
+// Atualiza a contagem de itens no carrinho.
 function updateCartCount() {
     const cart = JSON.parse(localStorage.getItem('tempCart')) || [];
-    const itemCount = cart.length;
-    
-    cartItemCountEl.textContent = itemCount;
-
-    if (itemCount > 0) {
-        checkoutFooterButton.style.display = 'flex';
-    } else {
-        checkoutFooterButton.style.display = 'none';
-    }
+    cartItemCountEl.textContent = cart.length;
 }
 
+// Funções de salvamento e finalização de pedido (do arquivo cart.js original)
 function saveOrder(paymentMethod) {
     const cart = JSON.parse(localStorage.getItem('tempCart')) || [];
     const orderId = generateOrderId();
@@ -241,6 +256,15 @@ sizeOptionsContainer.addEventListener('change', () => {
 includedOptionsContainer.addEventListener('change', updateSelection);
 extraOptionsContainer.addEventListener('change', updateSelection);
 addToCartButton.addEventListener('click', addToCart);
+
+continueShoppingBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+    resetSelections();
+});
+
+goToCartBtn.addEventListener('click', () => {
+    window.location.href = 'cart.html';
+});
 
 // Inicializa a aplicação quando o documento está pronto
 document.addEventListener('DOMContentLoaded', () => {
