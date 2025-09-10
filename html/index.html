@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Açaí - Monte seu Pedido</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+    <header class="header">
+        <h1>Monte seu Açaí</h1>
+    </header>
+
+    <main class="container">
+        <section class="product-selection-card">
+            <img src="https://via.placeholder.com/600/6A5ACD/FFFFFF?text=Acaí" alt="Açaí" class="product-image">
+            <p id="product-description" class="product-description"></p>
+            
+            <div class="options-container">
+                <div class="option-group">
+                    <h2>Escolha o Tamanho</h2>
+                    <div id="size-options" class="option-list"></div>
+                </div>
+
+                <div class="option-group">
+                    <h2>Complementos Inclusos</h2>
+                    <p id="included-limit-text" class="small-text"></p>
+                    <div id="included-options" class="option-list"></div>
+                </div>
+
+                <div class="option-group">
+                    <h2>Ingredientes Extras</h2>
+                    <div id="extra-options" class="option-list"></div>
+                </div>
+            </div>
+            
+            <div class="sticky-footer">
+                <button id="add-to-cart-button" class="add-to-cart-button">
+                    Adicionar ao Carrinho - <span id="add-to-cart-price">R$ 0,00</span>
+                </button>
+                <a href="cart.html" id="checkout-footer-button" class="checkout-footer-button">
+                    Finalizar Pedido
+                    <span id="cart-item-count" class="cart-item-count">0</span>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <script src="../js/script.js"></script>
+</body>
+</html>

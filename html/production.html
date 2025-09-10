@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produção do Pedido</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .production-container {
+            max-width: 600px;
+            width: 100%;
+            padding: 1rem;
+            flex-grow: 1;
+        }
+
+        .production-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+        }
+
+        .production-header {
+            text-align: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .production-header h2 {
+            margin: 0;
+            font-size: 2rem;
+            color: #28a745;
+        }
+
+        .production-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .production-item {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .production-details {
+            font-size: 1rem;
+            color: #666;
+            margin-left: 1.5rem;
+        }
+
+        .production-actions {
+            margin-top: 2rem;
+        }
+        
+        .finalize-button {
+            width: 100%;
+            padding: 1rem;
+            background-color: #dc3545;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <h1>Produção do Pedido</h1>
+    </header>
+
+    <main class="production-container">
+        <section id="production-details" class="production-card"></section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const productionDetails = document.getElementById('production-details');
+
+            function getOrderIdFromUrl() {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get('id');
+            }
+
+            function loadOrderForProduction() {
+                const orderId = getOrderIdFromUrl();
+                const orders = JSON.parse(localStorage.getItem('orders')) || [];
+                const order = orders.find(o => o.id === orderId);
+
+                if (order) {
+                    // Atualiza o status do pedido para 'em_producao'
+                    // Isso é importante para que o pedido não seja mais visível no painel da cozinha
+                    order.status = 'in_progress';
+                    localStorage.setItem('orders', JSON.stringify(orders));
+                    
+                    renderProductionDetails(order);
+                } else {
+                    productionDetails.innerHTML = '<p>Pedido não encontrado ou já finalizado.</p>';
+                }
+            }
+
+            function renderProductionDetails(order) {
+                let itemsHtml = '';
+                if (order.items && Array.isArray(order.items)) {
+                    order.items.forEach(item => {
+                        let details = `Tamanho: ${item.size.name}`;
+                        if (item.included && item.included.length > 0) {
+                            details += ` | Inclusos: ${item.included.join(', ')}`;
+                        }
+                        if (item.extras && item.extras.length > 0) {
+                            details += ` | Extras: ${item.extras.map(e => e.name).join(', ')}`;
+                        }
+                        itemsHtml += `
+                            <li class="production-item">
+                                <strong>${item.name}</strong>
+                                <p class="production-details">${details}</p>
+                            </li>
+                        `;
+                    });
+                }
+
+                productionDetails.innerHTML = `
+                    <div class="production-header">
+                        <h2>Pedido #${order.id}</h2>
+                    </div>
+                    <ul class="production-list">${itemsHtml}</ul>
+                    <div class="production-actions">
+                        <button id="finalize-order-button" class="finalize-button">Finalizar Pedido</button>
+                    </div>
+                `;
+
+                // Adiciona o evento de clique para finalizar o pedido
+                document.getElementById('finalize-order-button').addEventListener('click', () => {
+                    finalizeOrder(order.id);
+                });
+            }
+
+            function finalizeOrder(orderId) {
+                const orders = JSON.parse(localStorage.getItem('orders')) || [];
+                const orderToFinalize = orders.find(o => o.id === orderId);
+
+                if (orderToFinalize) {
+                    orderToFinalize.status = 'completed';
+                    localStorage.setItem('orders', JSON.stringify(orders));
+                    alert('Pedido finalizado com sucesso!');
+                    window.location.href = 'kitchen.html'; // Volta para a lista
+                }
+            }
+
+            // Impede o utilizador de sair da página sem finalizar o pedido
+            window.addEventListener('beforeunload', (e) => {
+                const orderId = getOrderIdFromUrl();
+                const orders = JSON.parse(localStorage.getItem('orders')) || [];
+                const orderStatus = orders.find(o => o.id === orderId)?.status;
+
+                if (orderStatus === 'in_progress') {
+                    e.preventDefault();
+                    e.returnValue = ''; // Exibe o pop-up de aviso
+                    alert('Por favor, finalize o pedido antes de sair.');
+                }
+            });
+
+            loadOrderForProduction();
+        });
+    </script>
+</body>
+</html>

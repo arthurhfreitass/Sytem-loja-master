@@ -61,11 +61,6 @@ const addToCartPriceSpan = document.getElementById('add-to-cart-price');
 const cartItemCountEl = document.getElementById('cart-item-count');
 const checkoutFooterButton = document.getElementById('checkout-footer-button');
 
-// Referências aos elementos da modal
-const modal = document.getElementById('cart-confirm-modal');
-const continueShoppingBtn = document.getElementById('continue-shopping-btn');
-const goToCartBtn = document.getElementById('go-to-cart-btn');
-
 // --- Funções Principais ---
 
 // Renderiza as opções de tamanho e extras na página.
@@ -74,7 +69,7 @@ function renderOptions() {
     acaiProduct.sizes.forEach((size, index) => {
         const optionHtml = `
             <label class="option-item">
-                <input type="radio" name="acai-size" class="option-radio" data-price="${size.price}" data-name="${size.name}" data-description="${size.description}" data-sizeIndex="${index}">
+                <input type="radio" name="acai-size" class="option-radio" data-price="${size.price}" data-name="${size.name}" data-description="${size.description}" data-size-index="${index}">
                 <span class="option-name">${size.name}</span>
                 <span class="option-price">R$ ${size.price.toFixed(2)}</span>
             </label>
@@ -126,7 +121,6 @@ function updateIncludedToppings() {
 // Atualiza a descrição, o preço e a visibilidade dos botões de ação.
 function updateSelection() {
     const selectedSizeRadio = document.querySelector('input[name="acai-size"]:checked');
-    const cart = JSON.parse(localStorage.getItem('tempCart')) || [];
     
     // Visibilidade do botão de Adicionar ao Carrinho
     if (selectedSizeRadio) {
@@ -134,13 +128,6 @@ function updateSelection() {
     } else {
         addToCartButton.style.display = 'none';
         productDescriptionEl.textContent = '';
-    }
-
-    // Visibilidade do botão de Finalizar Pedido
-    if (cart.length > 0) {
-        checkoutFooterButton.style.display = 'flex';
-    } else {
-        checkoutFooterButton.style.display = 'none';
     }
     
     // Calcula o preço total
@@ -207,10 +194,7 @@ function addToCart() {
     localStorage.setItem('tempCart', JSON.stringify(cart));
 
     updateCartCount();
-    
-    // Exibe a modal de confirmação e esconde o botão de adicionar
-    addToCartButton.style.display = 'none';
-    modal.style.display = 'flex';
+    resetSelections();
 }
 
 // Limpa todas as seleções de opções.
@@ -226,7 +210,15 @@ function resetSelections() {
 // Atualiza a contagem de itens no carrinho.
 function updateCartCount() {
     const cart = JSON.parse(localStorage.getItem('tempCart')) || [];
-    cartItemCountEl.textContent = cart.length;
+    const itemCount = cart.length;
+    
+    cartItemCountEl.textContent = itemCount;
+
+    if (itemCount > 0) {
+        checkoutFooterButton.style.display = 'flex';
+    } else {
+        checkoutFooterButton.style.display = 'none';
+    }
 }
 
 // --- Eventos ---
@@ -238,18 +230,26 @@ includedOptionsContainer.addEventListener('change', updateSelection);
 extraOptionsContainer.addEventListener('change', updateSelection);
 addToCartButton.addEventListener('click', addToCart);
 
-continueShoppingBtn.addEventListener('click', () => {
-    modal.style.display = 'none';
-    resetSelections();
-});
-
-goToCartBtn.addEventListener('click', () => {
-    window.location.href = 'cart.html';
-});
-
 // Inicializa a aplicação quando o documento está pronto
 document.addEventListener('DOMContentLoaded', () => {
     renderOptions();
     updateCartCount();
     updateSelection();
 });
+
+function saveOrder(paymentMethod) {
+    const orderId = generateOrderId();
+    const orderData = {
+        id: orderId,
+        items: cart,
+        total: cart.reduce((sum, item) => sum + item.price, 0),
+        payment: paymentMethod,
+        status: 'pendente' // Adicionado
+    };
+    
+    let orders = JSON.parse(localStorage.getItem('orders')) || [];
+    orders.push(orderData);
+    localStorage.setItem('orders', JSON.stringify(orders));
+
+    return orderId;
+}
