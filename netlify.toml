@@ -1,0 +1,5 @@
+# netlify.toml
+
+[build]
+  # Diretório onde as funções serverless estão localizadas
+  functions = "netlify/functions/"

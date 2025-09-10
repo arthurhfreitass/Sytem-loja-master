@@ -1,3 +1,17 @@
+// js/cart.js
+
+// =======================================================
+// INICIALIZAÇÃO DO MERCADO PAGO (NOVO)
+// =======================================================
+// Use a sua Public Key de TESTE aqui.
+const mp = new MercadoPago("APP_USR-4a92f47e-85b7-44ea-95be-6829bf84805c", {
+    locale: 'pt-BR'
+});
+const bricksBuilder = mp.bricks();
+
+// =======================================================
+// ELEMENTOS DA PÁGINA
+// =======================================================
 let cart = [];
 
 // Elementos da página
@@ -19,7 +33,16 @@ const finishMessage = document.getElementById('finish-message');
 const orderCodeDisplay = document.getElementById('order-code-display');
 const closeButtons = document.querySelectorAll('.close-button');
 
-// --- Funções Principais ---
+// Elementos do novo Modal PIX (NOVO)
+const pixModal = document.getElementById('pix-modal');
+const pixLoadingMessage = document.getElementById('pix-loading-message');
+const pixOrderIdSpan = document.getElementById('pix-order-id');
+const pixBrickContainer = document.getElementById('pix-payment-brick-container');
+
+
+// =======================================================
+// FUNÇÕES PRINCIPAIS (Sem alterações aqui)
+// =======================================================
 
 // Função para mostrar uma notificação temporária
 function showToast(message) {
@@ -27,7 +50,7 @@ function showToast(message) {
     toastMessageEl.classList.add('show');
     setTimeout(() => {
         toastMessageEl.classList.remove('show');
-    }, 3000); // 3 segundos
+    }, 3000);
 }
 
 // Função para carregar e renderizar o carrinho
@@ -66,7 +89,6 @@ function renderCart() {
 
     cartTotalPriceSpan.textContent = `R$ ${cartTotal.toFixed(2)}`;
 
-    // Evento de remover do carrinho
     document.querySelectorAll('.remove-from-cart-btn').forEach(button => {
         button.addEventListener('click', (e) => {
             const itemId = e.target.dataset.id;
@@ -76,14 +98,20 @@ function renderCart() {
 }
 
 function removeFromCart(itemId) {
-    const removedItemName = cart.find(item => item.id === itemId)?.name || 'Item';
-    cart = cart.filter(item => item.id !== itemId);
-    localStorage.setItem('tempCart', JSON.stringify(cart));
-    renderCart();
-    showToast(`${removedItemName} removido!`);
+    const removedItemIndex = cart.findIndex(item => item.id === itemId);
+    if (removedItemIndex > -1) {
+        const removedItemName = `Açaí ${cart[removedItemIndex].size.name}`;
+        cart.splice(removedItemIndex, 1);
+        localStorage.setItem('tempCart', JSON.stringify(cart));
+        renderCart();
+        showToast(`${removedItemName} removido!`);
+    }
 }
 
-// --- Funções das Modais e Finalização ---
+
+// =======================================================
+// FUNÇÕES DAS MODAIS E FINALIZAÇÃO
+// =======================================================
 
 function renderReviewList() {
     reviewList.innerHTML = '';
@@ -131,6 +159,7 @@ function saveOrder(paymentMethod) {
     return orderId;
 }
 
+// Função MODIFICADA para lidar com pagamentos que não são Pix
 function finalizeOrder(paymentMethod) {
     if (cart.length === 0) {
         showToast("Seu carrinho está vazio!");
@@ -139,10 +168,7 @@ function finalizeOrder(paymentMethod) {
 
     const orderId = saveOrder(paymentMethod);
     
-    if (paymentMethod === 'pix') {
-        finishTitle.textContent = "Pagamento via PIX";
-        finishMessage.textContent = "Realize o pagamento e informe o código do seu pedido ao caixa.";
-    } else if (paymentMethod === 'card') {
+    if (paymentMethod === 'card') {
         finishTitle.textContent = "Pagamento com Cartão";
         finishMessage.textContent = "Dirija-se ao caixa para finalizar o pagamento. O número do seu pedido é:";
     } else {
@@ -163,7 +189,77 @@ function finalizeOrder(paymentMethod) {
 function showModal(modal) { modal.classList.add('show'); }
 function hideModal(modal) { modal.classList.remove('show'); }
 
-// --- Eventos ---
+// =======================================================
+// LÓGICA DE PAGAMENTO PIX DO MERCADO PAGO (NOVO)
+// =======================================================
+
+async function startPixPayment() {
+    // 1. Salva o pedido localmente e pega o ID
+    const orderId = saveOrder('pix');
+    const orderTotal = cart.reduce((sum, item) => sum + item.price, 0);
+
+    // 2. Prepara e exibe o modal do Pix
+    hideModal(paymentModal);
+    pixOrderIdSpan.textContent = `#${orderId}`;
+    pixLoadingMessage.style.display = 'block';
+    pixBrickContainer.innerHTML = ''; // Limpa o container
+    showModal(pixModal);
+
+    try {
+        // 3. Chama a nossa Netlify Function para criar o pagamento no Mercado Pago
+        const response = await fetch('/.netlify/functions/criar-pagamento-pix', {
+            method: 'POST',
+            body: JSON.stringify({
+                description: `Pedido #${orderId}`,
+                price: orderTotal,
+                email: 'cliente@email.com' // Pode ser um email fixo ou capturado por um formulário
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Falha ao gerar o QR Code. Tente outro método de pagamento.');
+        }
+
+        const pixData = await response.json();
+
+        // 4. Renderiza o QR Code na tela usando o Payment Brick
+        pixLoadingMessage.style.display = 'none';
+        await renderPixBrick(pixData, orderTotal);
+
+        // 5. Limpa o carrinho no frontend
+        localStorage.removeItem('tempCart');
+        renderCart();
+
+    } catch (error) {
+        console.error("Erro no pagamento PIX:", error);
+        hideModal(pixModal);
+        showToast(error.message || 'Erro desconhecido. Tente novamente.');
+        // Reverte o salvamento do pedido se deu erro (opcional)
+        let orders = JSON.parse(localStorage.getItem('orders')) || [];
+        orders = orders.filter(o => o.id !== orderId);
+        localStorage.setItem('orders', JSON.stringify(orders));
+    }
+}
+
+async function renderPixBrick(pixData, amount) {
+    const settings = {
+        initialization: {
+            amount: amount,
+        },
+        callbacks: {
+            onReady: () => console.log('Brick de Pix pronto!'),
+            onError: (error) => console.error(error),
+        },
+    };
+    
+    const pixBrickController = await bricksBuilder.create('pix', 'pix-payment-brick-container', settings);
+    // Injeta os dados do PIX que criamos no backend
+    pixBrickController.update(pixData);
+}
+
+// =======================================================
+// EVENTOS
+// =======================================================
 checkoutButton.addEventListener('click', () => {
     if (cart.length === 0) {
         showToast("Seu carrinho está vazio!");
@@ -178,10 +274,16 @@ confirmReviewButton.addEventListener('click', () => {
     showModal(paymentModal);
 });
 
+// Evento de seleção de pagamento (MODIFICADO)
 paymentOptions.forEach(button => {
     button.addEventListener('click', (e) => {
         const paymentType = e.target.dataset.type;
-        finalizeOrder(paymentType);
+        
+        if (paymentType === 'pix') {
+            startPixPayment(); // Chama a nova função de pagamento Pix
+        } else {
+            finalizeOrder(paymentType); // Mantém o fluxo antigo para Cartão/Dinheiro
+        }
     });
 });
 

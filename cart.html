@@ -61,6 +61,19 @@
         </div>
     </div>
     <div id="toast-message" class="toast-message"></div>
+    <div id="pix-modal" class="modal">
+        <div class="modal-content text-center">
+            <span class="close-button">&times;</span>
+            <h2>Pague com Pix para Finalizar</h2>
+            <p>Seu pedido: <strong id="pix-order-id">#0000</strong></p>
+            
+            <div id="pix-payment-brick-container"></div>
+            
+            <p id="pix-loading-message">Aguarde, estamos gerando seu QR Code...</p>
+            <p style="margin-top: 15px; font-size: 0.9em;">Após o pagamento, pode fechar esta janela. Seu pedido já está registrado.</p>
+        </div>
+    </div>
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
 
     <script src="js/cart.js"></script>
 </body>
