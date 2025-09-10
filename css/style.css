@@ -1,0 +1,414 @@
+/* Estilos gerais */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.header {
+    width: 100%;
+    background-color: #6A5ACD;
+    color: #fff;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.container {
+    max-width: 600px;
+    width: 100%;
+    padding: 1rem;
+    flex-grow: 1;
+}
+
+.product-selection-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding-bottom: 70px;
+}
+
+.product-image {
+    width: 100%;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.product-description {
+    padding: 0 1.5rem;
+    color: #555;
+    line-height: 1.5;
+}
+
+.options-container {
+    padding: 1.5rem;
+}
+
+.option-group {
+    margin-bottom: 1.5rem;
+}
+
+.option-group h2 {
+    font-size: 1.5rem;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.option-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.option-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.option-item:hover {
+    background-color: #f1f1f1;
+}
+
+.option-item.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.option-name {
+    flex-grow: 1;
+}
+
+.option-price {
+    color: #6A5ACD;
+    font-weight: bold;
+}
+
+.option-radio, .option-checkbox {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    cursor: pointer;
+    margin-right: 15px;
+}
+
+.option-radio:checked {
+    border-color: #6A5ACD;
+    background-color: #6A5ACD;
+}
+
+.option-checkbox {
+    border-radius: 4px;
+}
+
+.option-checkbox:checked {
+    border-color: #6A5ACD;
+    background-color: #6A5ACD;
+}
+
+.small-text {
+    font-size: 0.8em;
+    color: #888;
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Rodapé */
+.sticky-footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    background-color: #fff;
+    box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    z-index: 999;
+}
+
+.add-to-cart-button, .checkout-footer-button {
+    padding: 1rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    width: 100%; /* Botão sempre com 100% de largura */
+    text-align: center;
+    text-decoration: none;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.add-to-cart-button {
+    background-color: #28a745;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.checkout-footer-button {
+    background-color: #6A5ACD;
+    display: flex; /* Adicionado para centralizar conteúdo */
+    justify-content: center;
+    align-items: center;
+}
+
+/* Estilos da modal de confirmação */
+/* Estilos da modal de confirmação */
+.modal {
+    /* ... (manter o código existente) ... */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    /* ... (manter o código existente) ... */
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.modal.show .modal-content {
+    transform: scale(1);
+}
+/* Estilos para o contador de itens no carrinho */
+.cart-item-count {
+    background-color: #ff4d4f; /* Cor vermelha para o destaque */
+    color: #fff;
+    border-radius: 50%;
+    padding: 2px 8px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-left: 8px;
+    display: none; /* Inicia escondido */
+}
+
+/* Garante que o botão de finalizar pedido apareça sempre que houver itens, mesmo sem ter o item selecionado para adicionar. */
+.checkout-footer-button {
+    background-color: #6A5ACD;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative; /* Para posicionar o contador */
+}
+
+/* Regra para exibir o contador quando ele tem um número */
+.cart-item-count:not(:empty) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+/* CARINHO */
+
+/* Estilos para a página do carrinho */
+.cart-list-container {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.order-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.order-item:last-child {
+    border-bottom: none;
+}
+
+.remove-from-cart-btn {
+    background-color: #ff4d4f;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    line-height: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 1rem;
+    transition: background-color 0.2s ease;
+}
+
+.remove-from-cart-btn:hover {
+    background-color: #e53935;
+}
+
+.cart-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.price {
+    color: #6A5ACD;
+}
+
+.cart-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.checkout-button, .back-button {
+    flex-grow: 1;
+    padding: 1rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    color: #fff;
+}
+
+.checkout-button {
+    background-color: #28a745;
+}
+
+.back-button {
+    background-color: #6c757d;
+}
+
+/* Melhorias nos Modais */
+.modal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.6);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background-color: #fff;
+    padding: 2.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+
+.modal.show .modal-content {
+    transform: scale(1);
+}
+
+.close-button {
+    float: right;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.payment-option {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+    color: #333;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.payment-option:hover {
+    background-color: #e2e6ea;
+}
+
+.order-code-display {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #6A5ACD;
+    margin-top: 1rem;
+}
+
+/* Estilos para a mensagem temporária de notificação */
+.toast-message {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 1rem 2rem;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 1001;
+}
+
+.toast-message.show {
+    opacity: 1;
+    visibility: visible;
+}

@@ -1,0 +1,196 @@
+let cart = [];
+
+// Elementos da página
+const cartList = document.getElementById('cart-list');
+const cartTotalPriceSpan = document.getElementById('cart-total-price');
+const checkoutButton = document.getElementById('checkout-button');
+const toastMessageEl = document.getElementById('toast-message');
+
+// Elementos das modais
+const reviewModal = document.getElementById('review-modal');
+const paymentModal = document.getElementById('payment-modal');
+const finishModal = document.getElementById('finish-modal');
+const reviewList = document.getElementById('review-list');
+const reviewTotalPriceSpan = document.getElementById('review-total-price');
+const confirmReviewButton = document.getElementById('confirm-review-button');
+const paymentOptions = document.querySelectorAll('.payment-option');
+const finishTitle = document.getElementById('finish-title');
+const finishMessage = document.getElementById('finish-message');
+const orderCodeDisplay = document.getElementById('order-code-display');
+const closeButtons = document.querySelectorAll('.close-button');
+
+// --- Funções Principais ---
+
+// Função para mostrar uma notificação temporária
+function showToast(message) {
+    toastMessageEl.textContent = message;
+    toastMessageEl.classList.add('show');
+    setTimeout(() => {
+        toastMessageEl.classList.remove('show');
+    }, 3000); // 3 segundos
+}
+
+// Função para carregar e renderizar o carrinho
+function renderCart() {
+    cart = JSON.parse(localStorage.getItem('tempCart')) || [];
+    cartList.innerHTML = '';
+    let cartTotal = 0;
+
+    if (cart.length === 0) {
+        cartList.innerHTML = '<li><span class="label">Carrinho vazio</span></li>';
+        checkoutButton.disabled = true;
+    } else {
+        checkoutButton.disabled = false;
+        cart.forEach(item => {
+            const itemElement = document.createElement('li');
+            itemElement.classList.add('order-item');
+            itemElement.dataset.id = item.id;
+            
+            let details = `Açaí ${item.size.name}`;
+            if (item.included.length > 0) {
+                details += ` c/ ${item.included.join(', ')}`;
+            }
+            if (item.extras.length > 0) {
+                details += ` e extras`;
+            }
+
+            itemElement.innerHTML = `
+                <span>${details}</span>
+                <span>R$ ${item.price.toFixed(2)}</span>
+                <button class="remove-from-cart-btn" data-id="${item.id}">&times;</button>
+            `;
+            cartList.appendChild(itemElement);
+            cartTotal += item.price;
+        });
+    }
+
+    cartTotalPriceSpan.textContent = `R$ ${cartTotal.toFixed(2)}`;
+
+    // Evento de remover do carrinho
+    document.querySelectorAll('.remove-from-cart-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const itemId = e.target.dataset.id;
+            removeFromCart(itemId);
+        });
+    });
+}
+
+function removeFromCart(itemId) {
+    const removedItemName = cart.find(item => item.id === itemId)?.name || 'Item';
+    cart = cart.filter(item => item.id !== itemId);
+    localStorage.setItem('tempCart', JSON.stringify(cart));
+    renderCart();
+    showToast(`${removedItemName} removido!`);
+}
+
+// --- Funções das Modais e Finalização ---
+
+function renderReviewList() {
+    reviewList.innerHTML = '';
+    let total = 0;
+    
+    cart.forEach(item => {
+        const reviewItemElement = document.createElement('li');
+        reviewItemElement.classList.add('order-item-review');
+        let details = `Açaí ${item.size.name}`;
+        if (item.included.length > 0) {
+            details += ` (inclusos: ${item.included.join(', ')})`;
+        }
+        if (item.extras.length > 0) {
+            details += ` (extras: ${item.extras.map(e => e.name).join(', ')})`;
+        }
+        reviewItemElement.innerHTML = `
+            <span>${details}</span>
+            <span>R$ ${item.price.toFixed(2)}</span>
+        `;
+        reviewList.appendChild(reviewItemElement);
+        total += item.price;
+    });
+
+    reviewTotalPriceSpan.textContent = `R$ ${total.toFixed(2)}`;
+}
+
+function generateOrderId() {
+    return Math.floor(1000 + Math.random() * 9000).toString();
+}
+
+function saveOrder(paymentMethod) {
+    const orderId = generateOrderId();
+    const orderData = {
+        id: orderId,
+        items: cart,
+        total: cart.reduce((sum, item) => sum + item.price, 0),
+        payment: paymentMethod,
+        status: 'pendente'
+    };
+    
+    let orders = JSON.parse(localStorage.getItem('orders')) || [];
+    orders.push(orderData);
+    localStorage.setItem('orders', JSON.stringify(orders));
+
+    return orderId;
+}
+
+function finalizeOrder(paymentMethod) {
+    if (cart.length === 0) {
+        showToast("Seu carrinho está vazio!");
+        return;
+    }
+
+    const orderId = saveOrder(paymentMethod);
+    
+    if (paymentMethod === 'pix') {
+        finishTitle.textContent = "Pagamento via PIX";
+        finishMessage.textContent = "Realize o pagamento e informe o código do seu pedido ao caixa.";
+    } else if (paymentMethod === 'card') {
+        finishTitle.textContent = "Pagamento com Cartão";
+        finishMessage.textContent = "Dirija-se ao caixa para finalizar o pagamento. O número do seu pedido é:";
+    } else {
+        finishTitle.textContent = "Pagamento com Dinheiro";
+        finishMessage.textContent = "Dirija-se ao caixa para finalizar o pagamento. O número do seu pedido é:";
+    }
+    
+    orderCodeDisplay.textContent = orderId;
+    
+    hideModal(reviewModal);
+    hideModal(paymentModal);
+    showModal(finishModal);
+    
+    localStorage.removeItem('tempCart');
+    renderCart();
+}
+
+function showModal(modal) { modal.classList.add('show'); }
+function hideModal(modal) { modal.classList.remove('show'); }
+
+// --- Eventos ---
+checkoutButton.addEventListener('click', () => {
+    if (cart.length === 0) {
+        showToast("Seu carrinho está vazio!");
+        return;
+    }
+    renderReviewList();
+    showModal(reviewModal);
+});
+
+confirmReviewButton.addEventListener('click', () => {
+    hideModal(reviewModal);
+    showModal(paymentModal);
+});
+
+paymentOptions.forEach(button => {
+    button.addEventListener('click', (e) => {
+        const paymentType = e.target.dataset.type;
+        finalizeOrder(paymentType);
+    });
+});
+
+closeButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+        const modal = e.target.closest('.modal');
+        hideModal(modal);
+    });
+});
+
+// Inicializa a página do carrinho
+document.addEventListener('DOMContentLoaded', renderCart);
