@@ -192,41 +192,39 @@ function hideModal(modal) { modal.classList.remove('show'); }
 // =======================================================
 // LÓGICA DE PAGAMENTO PIX DO MERCADO PAGO (NOVO)
 // =======================================================
-
+// FUNÇÃO ORIGINAL E CORRIGIDA, SEM DUPLICAÇÃO
 async function startPixPayment() {
-    // 1. Salva o pedido localmente e pega o ID
     const orderId = saveOrder('pix');
     const orderTotal = cart.reduce((sum, item) => sum + item.price, 0);
 
-    // 2. Prepara e exibe o modal do Pix
     hideModal(paymentModal);
     pixOrderIdSpan.textContent = `#${orderId}`;
     pixLoadingMessage.style.display = 'block';
-    pixBrickContainer.innerHTML = ''; // Limpa o container
+    pixBrickContainer.innerHTML = '';
     showModal(pixModal);
 
     try {
-        // 3. Chama a nossa Netlify Function para criar o pagamento no Mercado Pago
         const response = await fetch('/.netlify/functions/criar-pagamento-pix', {
             method: 'POST',
             body: JSON.stringify({
                 description: `Pedido #${orderId}`,
                 price: orderTotal,
-                email: 'cliente@email.com' // Pode ser um email fixo ou capturado por um formulário
+                email: 'cliente@email.com'
             })
         });
 
         if (!response.ok) {
             throw new Error('Falha ao gerar o QR Code. Tente outro método de pagamento.');
         }
+        
+        // Armazena a resposta completa da API
+        const paymentResponse = await response.json();
 
-        const pixData = await response.json();
-
-        // 4. Renderiza o QR Code na tela usando o Payment Brick
         pixLoadingMessage.style.display = 'none';
-        await renderPixBrick(pixData, orderTotal);
+        
+        // Passa a resposta completa e o valor para a função de renderização
+        await renderPixBrick(paymentResponse, orderTotal);
 
-        // 5. Limpa o carrinho no frontend
         localStorage.removeItem('tempCart');
         renderCart();
 
@@ -234,14 +232,14 @@ async function startPixPayment() {
         console.error("Erro no pagamento PIX:", error);
         hideModal(pixModal);
         showToast(error.message || 'Erro desconhecido. Tente novamente.');
-        // Reverte o salvamento do pedido se deu erro (opcional)
         let orders = JSON.parse(localStorage.getItem('orders')) || [];
         orders = orders.filter(o => o.id !== orderId);
         localStorage.setItem('orders', JSON.stringify(orders));
     }
 }
 
-async function renderPixBrick(pixData, amount) {
+// FUNÇÃO CORRIGIDA para renderizar o Brick
+async function renderPixBrick(paymentResponse, amount) {
     const settings = {
         initialization: {
             amount: amount,
@@ -253,8 +251,13 @@ async function renderPixBrick(pixData, amount) {
     };
     
     const pixBrickController = await bricksBuilder.create('pix', 'pix-payment-brick-container', settings);
-    // Injeta os dados do PIX que criamos no backend
-    pixBrickController.update(pixData);
+    
+    // Injeta os dados do PIX que vieram completos do backend no formato exigido pela API
+    // Os dados do Pix vêm dentro do objeto 'point_of_interaction'
+    pixBrickController.update({ 
+        paymentId: paymentResponse.id,
+        transactionData: paymentResponse.point_of_interaction.transaction_data 
+    });
 }
 
 // =======================================================
@@ -280,9 +283,9 @@ paymentOptions.forEach(button => {
         const paymentType = e.target.dataset.type;
         
         if (paymentType === 'pix') {
-            startPixPayment(); // Chama a nova função de pagamento Pix
+            startPixPayment();
         } else {
-            finalizeOrder(paymentType); // Mantém o fluxo antigo para Cartão/Dinheiro
+            finalizeOrder(paymentType);
         }
     });
 });
@@ -293,67 +296,6 @@ closeButtons.forEach(button => {
         hideModal(modal);
     });
 });
-async function startPixPayment() {
-    const orderId = saveOrder('pix');
-    const orderTotal = cart.reduce((sum, item) => sum + item.price, 0);
-
-    hideModal(paymentModal);
-    pixOrderIdSpan.textContent = `#${orderId}`;
-    pixLoadingMessage.style.display = 'block';
-    pixBrickContainer.innerHTML = '';
-    showModal(pixModal);
-
-    try {
-        const response = await fetch('/.netlify/functions/criar-pagamento-pix', {
-            method: 'POST',
-            body: JSON.stringify({
-                description: `Pedido #${orderId}`,
-                price: orderTotal,
-                email: 'cliente@email.com'
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error('Falha ao gerar o QR Code. Tente outro método de pagamento.');
-        }
-
-        // --- CORREÇÃO: Armazena a resposta da API diretamente ---
-        const paymentResponse = await response.json();
-
-        // 4. Renderiza o QR Code na tela usando o Payment Brick
-        pixLoadingMessage.style.display = 'none';
-        // --- CORREÇÃO: Passa a resposta completa para a função de renderização ---
-        await renderPixBrick(paymentResponse, orderTotal);
-
-        // 5. Limpa o carrinho no frontend
-        localStorage.removeItem('tempCart');
-        renderCart();
-
-    } catch (error) {
-        console.error("Erro no pagamento PIX:", error);
-        hideModal(pixModal);
-        showToast(error.message || 'Erro desconhecido. Tente novamente.');
-        let orders = JSON.parse(localStorage.getItem('orders')) || [];
-        orders = orders.filter(o => o.id !== orderId);
-        localStorage.setItem('orders', JSON.stringify(orders));
-    }
-}
-
-async function renderPixBrick(paymentResponse, amount) {
-    const settings = {
-        initialization: {
-            amount: amount,
-        },
-        callbacks: {
-            onReady: () => console.log('Brick de Pix pronto!'),
-            onError: (error) => console.error(error),
-        },
-    };
-    
-    const pixBrickController = await bricksBuilder.create('pix', 'pix-payment-brick-container', settings);
-    // --- CORREÇÃO: Injeta os dados do PIX que vieram completos do backend ---
-    pixBrickController.update({ paymentId: paymentResponse.id, transactionData: paymentResponse.point_of_interaction.transaction_data });
-}
 
 // Inicializa a página do carrinho
 document.addEventListener('DOMContentLoaded', renderCart);

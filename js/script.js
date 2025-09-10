@@ -92,30 +92,31 @@ function renderOptions() {
 }
 
 function updateIncludedToppings() {
-    const selectedSizeRadio = document.querySelector('input[name="acai-size"]:checked');
-    
-    if (!selectedSizeRadio) {
-        includedOptionsContainer.innerHTML = '';
-        includedLimitTextEl.textContent = '';
-        return;
-    }
-    
-    const sizeIndex = parseInt(selectedSizeRadio.dataset.size-index, 10);
-    const selectedSizeData = acaiProduct.sizes[sizeIndex];
+    const selectedSizeRadio = document.querySelector('input[name="acai-size"]:checked');
+    
+    if (!selectedSizeRadio) {
+        includedOptionsContainer.innerHTML = '';
+        includedLimitTextEl.textContent = '';
+        return;
+    }
+    
+    // CORREÇÃO: Pegando o atributo 'data-sizeIndex' com a notação correta.
+    const sizeIndex = parseInt(selectedSizeRadio.dataset.sizeIndex, 10);
+    const selectedSizeData = acaiProduct.sizes[sizeIndex];
 
-    includedLimitTextEl.textContent = `Escolha até ${selectedSizeData.includedToppingsCount} itens sem custo adicional.`;
+    includedLimitTextEl.textContent = `Escolha até ${selectedSizeData.includedToppingsCount} itens sem custo adicional.`;
 
-    includedOptionsContainer.innerHTML = '';
-    selectedSizeData.availableIncludedToppings.forEach(topping => {
-        const optionHtml = `
-            <label class="option-item">
-                <input type="checkbox" name="acai-included" class="option-checkbox" data-name="${topping.name}">
-                <span class="option-name">${topping.name}</span>
-                <span class="option-price"> (incluso)</span>
-            </label>
-        `;
-        includedOptionsContainer.insertAdjacentHTML('beforeend', optionHtml);
-    });
+    includedOptionsContainer.innerHTML = '';
+    selectedSizeData.availableIncludedToppings.forEach(topping => {
+        const optionHtml = `
+            <label class="option-item">
+                <input type="checkbox" name="acai-included" class="option-checkbox" data-name="${topping.name}">
+                <span class="option-name">${topping.name}</span>
+                <span class="option-price"> (incluso)</span>
+            </label>
+        `;
+        includedOptionsContainer.insertAdjacentHTML('beforeend', optionHtml);
+    });
 }
 
 function updateSelection() {
