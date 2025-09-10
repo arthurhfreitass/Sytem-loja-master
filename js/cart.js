@@ -293,6 +293,67 @@ closeButtons.forEach(button => {
         hideModal(modal);
     });
 });
+async function startPixPayment() {
+    const orderId = saveOrder('pix');
+    const orderTotal = cart.reduce((sum, item) => sum + item.price, 0);
+
+    hideModal(paymentModal);
+    pixOrderIdSpan.textContent = `#${orderId}`;
+    pixLoadingMessage.style.display = 'block';
+    pixBrickContainer.innerHTML = '';
+    showModal(pixModal);
+
+    try {
+        const response = await fetch('/.netlify/functions/criar-pagamento-pix', {
+            method: 'POST',
+            body: JSON.stringify({
+                description: `Pedido #${orderId}`,
+                price: orderTotal,
+                email: 'cliente@email.com'
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Falha ao gerar o QR Code. Tente outro método de pagamento.');
+        }
+
+        // --- CORREÇÃO: Armazena a resposta da API diretamente ---
+        const paymentResponse = await response.json();
+
+        // 4. Renderiza o QR Code na tela usando o Payment Brick
+        pixLoadingMessage.style.display = 'none';
+        // --- CORREÇÃO: Passa a resposta completa para a função de renderização ---
+        await renderPixBrick(paymentResponse, orderTotal);
+
+        // 5. Limpa o carrinho no frontend
+        localStorage.removeItem('tempCart');
+        renderCart();
+
+    } catch (error) {
+        console.error("Erro no pagamento PIX:", error);
+        hideModal(pixModal);
+        showToast(error.message || 'Erro desconhecido. Tente novamente.');
+        let orders = JSON.parse(localStorage.getItem('orders')) || [];
+        orders = orders.filter(o => o.id !== orderId);
+        localStorage.setItem('orders', JSON.stringify(orders));
+    }
+}
+
+async function renderPixBrick(paymentResponse, amount) {
+    const settings = {
+        initialization: {
+            amount: amount,
+        },
+        callbacks: {
+            onReady: () => console.log('Brick de Pix pronto!'),
+            onError: (error) => console.error(error),
+        },
+    };
+    
+    const pixBrickController = await bricksBuilder.create('pix', 'pix-payment-brick-container', settings);
+    // --- CORREÇÃO: Injeta os dados do PIX que vieram completos do backend ---
+    pixBrickController.update({ paymentId: paymentResponse.id, transactionData: paymentResponse.point_of_interaction.transaction_data });
+}
 
 // Inicializa a página do carrinho
 document.addEventListener('DOMContentLoaded', renderCart);
