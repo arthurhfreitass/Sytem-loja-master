@@ -229,25 +229,6 @@ function updateCartCount() {
     cartItemCountEl.textContent = cart.length;
 }
 
-// Funções de salvamento e finalização de pedido (do arquivo cart.js original)
-function saveOrder(paymentMethod) {
-    const cart = JSON.parse(localStorage.getItem('tempCart')) || [];
-    const orderId = generateOrderId();
-    const orderData = {
-        id: orderId,
-        items: cart,
-        total: cart.reduce((sum, item) => sum + item.price, 0),
-        payment: paymentMethod,
-        status: 'pendente'
-    };
-    
-    let orders = JSON.parse(localStorage.getItem('orders')) || [];
-    orders.push(orderData);
-    localStorage.setItem('orders', JSON.stringify(orders));
-
-    return orderId;
-}
-
 // --- Eventos ---
 sizeOptionsContainer.addEventListener('change', () => {
     updateIncludedToppings();
