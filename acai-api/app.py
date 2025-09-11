@@ -11,15 +11,14 @@ load_dotenv()
 sdk = SDK(os.environ.get("ACCESS_TOKEN"))
 
 app = Flask(__name__)
-CORS(app)  # Habilita CORS para todas as rotas
+CORS(app)  # Habilita CORS
 
-# Rota para criar pagamento PIX
+# Criar pagamento PIX
 @app.route("/create_pix_payment", methods=["POST"])
 def create_pix_payment():
     try:
         data = request.get_json()
 
-        # Cria os itens no formato do Mercado Pago
         items_payload = []
         for item in data['items']:
             items_payload.append({
@@ -28,7 +27,6 @@ def create_pix_payment():
                 "quantity": item.get('quantity', 1)
             })
 
-        # Configura os dados do pagamento
         payment_data = {
             "transaction_amount": sum(item['unit_price'] * item['quantity'] for item in items_payload),
             "description": "Pagamento do seu pedido de Açaí",
@@ -40,7 +38,6 @@ def create_pix_payment():
             }
         }
 
-        # Cria pagamento PIX
         payment_response = sdk.payment().create(payment_data)
 
         if payment_response['status'] == 201:
@@ -57,6 +54,16 @@ def create_pix_payment():
                 "details": payment_response
             }), 500
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# Verificar status de pagamento
+@app.route("/payment_status/<payment_id>", methods=["GET"])
+def payment_status(payment_id):
+    try:
+        payment_info = sdk.payment().get(payment_id)
+        return jsonify(payment_info['response']), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

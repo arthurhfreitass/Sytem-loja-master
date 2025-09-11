@@ -1,12 +1,10 @@
 let cart = [];
 
-// Elementos da página
+// Elementos
 const cartList = document.getElementById('cart-list');
 const cartTotalPriceSpan = document.getElementById('cart-total-price');
 const checkoutButton = document.getElementById('checkout-button');
 const toastMessageEl = document.getElementById('toast-message');
-
-// Elementos das modais
 const reviewModal = document.getElementById('review-modal');
 const paymentModal = document.getElementById('payment-modal');
 const finishModal = document.getElementById('finish-modal');
@@ -19,8 +17,6 @@ const finishMessage = document.getElementById('finish-message');
 const orderCodeDisplay = document.getElementById('order-code-display');
 const closeButtons = document.querySelectorAll('.close-button');
 
-// --- Funções Principais ---
-
 // Toast
 function showToast(message) {
     toastMessageEl.textContent = message;
@@ -28,7 +24,7 @@ function showToast(message) {
     setTimeout(() => toastMessageEl.classList.remove('show'), 3000);
 }
 
-// Renderiza carrinho
+// Render carrinho
 function renderCart() {
     cart = JSON.parse(localStorage.getItem('tempCart')) || [];
     cartList.innerHTML = '';
@@ -42,10 +38,8 @@ function renderCart() {
         cart.forEach(item => {
             const li = document.createElement('li');
             li.classList.add('cart-item');
-
             const toppings = item.toppings && item.toppings.length > 0 ? item.toppings.join(', ') : 'Nenhum';
             const extras = item.extras && item.extras.length > 0 ? item.extras.join(', ') : 'Nenhum';
-
             li.innerHTML = `
                 <div class="item-info">
                     <span class="item-name">${item.name}</span>
@@ -61,22 +55,18 @@ function renderCart() {
             total += Number(item.price);
         });
     }
-
     cartTotalPriceSpan.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
 }
 
-// Renderiza revisão
+// Revisão
 function renderReviewList() {
     reviewList.innerHTML = '';
     let total = 0;
-
     cart.forEach(item => {
         const li = document.createElement('li');
         li.classList.add('order-item');
-
         const toppings = item.toppings && item.toppings.length > 0 ? item.toppings.join(', ') : 'Nenhum';
         const extras = item.extras && item.extras.length > 0 ? item.extras.join(', ') : 'Nenhum';
-
         li.innerHTML = `
             <div class="item-info">
                 <span class="item-name">${item.name}</span>
@@ -91,16 +81,15 @@ function renderReviewList() {
         reviewList.appendChild(li);
         total += Number(item.price);
     });
-
     reviewTotalPriceSpan.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
 }
 
-// Gera ID único
-function generateOrderId() {
-    return `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+// Código 4 dígitos
+function generateOrderCode() {
+    return Math.floor(1000 + Math.random() * 9000);
 }
 
-// Salva pedido
+// Salvar pedido
 function saveOrder(paymentMethod, orderId) {
     const orderData = {
         id: orderId,
@@ -109,103 +98,102 @@ function saveOrder(paymentMethod, orderId) {
         payment: paymentMethod,
         status: 'pendente'
     };
-
     let orders = JSON.parse(localStorage.getItem('orders')) || [];
     orders.push(orderData);
     localStorage.setItem('orders', JSON.stringify(orders));
 }
 
-// Finaliza pedido
+// Finalizar pedido
 function finalizeOrder(paymentMethod) {
     if (cart.length === 0) {
         showToast("Seu carrinho está vazio!");
         return;
     }
-
-    const orderId = generateOrderId();
-    const orderData = {
-        orderId: orderId,
-        items: cart.map(i => ({ name: i.name, price: Number(i.price), quantity: 1 })),
-        total: cart.reduce((sum, item) => sum + Number(item.price), 0),
-        payment: paymentMethod,
-    };
+    const orderId = generateOrderCode();
 
     if (paymentMethod === 'pix') {
         fetch('http://127.0.0.1:5000/create_pix_payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderData)
+            body: JSON.stringify({
+                orderId: orderId,
+                items: cart.map(i => ({ name: i.name, price: Number(i.price), quantity: 1 })),
+                total: cart.reduce((sum, item) => sum + Number(item.price), 0),
+                payment: paymentMethod
+            })
         })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => Promise.reject(err));
-            }
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
             if (data.qr_code && data.qr_code_base64) {
-                showPixModal(data.qr_code, data.qr_code_base64, orderId);
+                showPixModal(data.id, data.qr_code, data.qr_code_base64, orderId);
             } else {
-                showToast('Erro ao gerar o Pix. Tente novamente.');
-                console.error('Erro na resposta do servidor:', data);
+                showToast('Erro ao gerar o Pix.');
             }
         })
-        .catch(error => {
-            showToast('Erro de conexão. Verifique o servidor.');
-            console.error('Erro:', error);
-        });
-    } else if (paymentMethod === 'cash') {
+        .catch(() => showToast('Erro de conexão.'));
+    } else if (paymentMethod === 'caixa') {
         saveOrder(paymentMethod, orderId);
-        finishTitle.textContent = "Pagamento com Dinheiro";
-        finishMessage.textContent = "Dirija-se ao caixa para finalizar o pagamento. O número do seu pedido é:";
-        orderCodeDisplay.textContent = orderId;
-
+        finishTitle.textContent = "Pedido registrado no Caixa";
+        finishMessage.textContent = "Dirija-se ao caixa para finalizar o pagamento. Seu número do pedido é:";
+        orderCodeDisplay.textContent = `Código: ${orderId}`;
         hideModal(reviewModal);
         hideModal(paymentModal);
         showModal(finishModal);
-
         localStorage.removeItem('tempCart');
         renderCart();
-    } else {
-        showToast('Método de pagamento não implementado.');
     }
 }
 
-// Exibe modal Pix
-function showPixModal(qrCode, qrCodeBase64, orderId) {
+// PIX modal + verificação
+function showPixModal(paymentId, qrCode, qrCodeBase64, orderId) {
     hideModal(reviewModal);
     hideModal(paymentModal);
     showModal(finishModal);
-
     finishTitle.textContent = "Pagamento com PIX";
     finishMessage.innerHTML = `
-        <p>Aponte a câmera do seu celular para o QR Code para pagar.</p>
-        <img src="data:image/jpeg;base64,${qrCodeBase64}" alt="QR Code Pix" style="max-width: 200px; margin: 1rem auto; display: block;">
-        <p>Ou copie o código abaixo e pague no seu aplicativo de banco.</p>
+        <p>Aponte a câmera para pagar via PIX.</p>
+        <img src="data:image/jpeg;base64,${qrCodeBase64}" style="max-width:200px;margin:1rem auto;display:block;">
+        <p>Ou copie o código abaixo:</p>
         <div class="pix-code-container">
             <input type="text" id="pix-code" value="${qrCode}" readonly>
             <button id="copy-pix-button">Copiar</button>
         </div>
-        <p class="small-text">O número do seu pedido é: <span id="order-code-display">${orderId}</span></p>
+        <p class="small-text">Aguardando confirmação...</p>
     `;
-
     document.getElementById('copy-pix-button').addEventListener('click', () => {
         const pixCodeInput = document.getElementById('pix-code');
         pixCodeInput.select();
         document.execCommand('copy');
         showToast("Código Pix copiado!");
     });
-
-    saveOrder('pix', orderId);
-    localStorage.removeItem('tempCart');
-    renderCart();
+    checkPixStatus(paymentId, orderId);
 }
 
-// Utilitários de modal
+// Checa status do Pix
+function checkPixStatus(paymentId, orderId) {
+    const interval = setInterval(() => {
+        fetch(`http://127.0.0.1:5000/payment_status/${paymentId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "approved") {
+                    clearInterval(interval);
+                    finishTitle.textContent = "Pagamento aprovado!";
+                    finishMessage.textContent = "Seu pedido foi confirmado e está sendo preparado.";
+                    orderCodeDisplay.textContent = `Código: ${orderId}`;
+                    saveOrder('pix', orderId);
+                    localStorage.removeItem('tempCart');
+                    renderCart();
+                }
+            })
+            .catch(() => {});
+    }, 5000);
+}
+
+// Utils modal
 function showModal(modal) { modal.classList.add('show'); }
 function hideModal(modal) { modal.classList.remove('show'); }
 
-// --- Eventos ---
+// Eventos
 checkoutButton.addEventListener('click', () => {
     if (cart.length === 0) {
         showToast("Seu carrinho está vazio!");
@@ -214,22 +202,14 @@ checkoutButton.addEventListener('click', () => {
     renderReviewList();
     showModal(reviewModal);
 });
-
 confirmReviewButton.addEventListener('click', () => {
     hideModal(reviewModal);
     showModal(paymentModal);
 });
-
 paymentOptions.forEach(button => {
-    button.addEventListener('click', (e) => {
-        finalizeOrder(e.target.dataset.type);
-    });
+    button.addEventListener('click', e => finalizeOrder(e.target.dataset.type));
 });
-
 closeButtons.forEach(button => {
-    button.addEventListener('click', (e) => {
-        hideModal(e.target.closest('.modal'));
-    });
+    button.addEventListener('click', e => hideModal(e.target.closest('.modal')));
 });
-
 document.addEventListener('DOMContentLoaded', renderCart);
