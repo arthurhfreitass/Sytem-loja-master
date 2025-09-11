@@ -177,26 +177,33 @@ function showPixModal(paymentId, qrCode, qrCodeBase64, orderId) {
 
 // Checa status do Pix
 function checkPixStatus(paymentId, orderId) {
-    const interval = setInterval(() => {
-        console.log("⏳ Consultando status do pagamento:", paymentId); // debug
+    const url = `https://0a3afd9bae3a.ngrok-free.app/payment_status/${paymentId}`;
+    console.log("🔗 Chamando URL de status:", url);
 
-        fetch(`https://66ad257b202a.ngrok-free.app/payment_status/${paymentId}`)
-            .then(res => res.json())
-            .then(data => {
-                console.log("📡 Status recebido:", data); // debug
-                if (data.status === "approved") {
-                    clearInterval(interval);
-                    finishTitle.textContent = "Pagamento aprovado!";
-                    finishMessage.textContent = "Seu pedido foi confirmado e está sendo preparado.";
-                    orderCodeDisplay.textContent = `Código: ${orderId}`;
-                    saveOrder('pix', orderId);
-                    localStorage.removeItem('tempCart');
-                    renderCart();
+    const interval = setInterval(() => {
+        fetch(url)
+            .then(async res => {
+                const text = await res.text();
+                try {
+                    const data = JSON.parse(text);
+                    console.log("📡 Status recebido:", data);
+                    if (data.status === "approved") {
+                        clearInterval(interval);
+                        finishTitle.textContent = "Pagamento aprovado!";
+                        finishMessage.textContent = "Seu pedido foi confirmado e está sendo preparado.";
+                        orderCodeDisplay.textContent = `Código: ${orderId}`;
+                        saveOrder('pix', orderId);
+                        localStorage.removeItem('tempCart');
+                        renderCart();
+                    }
+                } catch (e) {
+                    console.error("❌ Resposta inesperada:", text);
                 }
             })
             .catch(err => console.error("Erro ao verificar pagamento:", err));
-    }, 5000); // checa a cada 5 segundos
+    }, 5000);
 }
+
 
 
 // Utils modal

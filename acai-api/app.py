@@ -11,7 +11,8 @@ load_dotenv()
 sdk = SDK(os.environ.get("ACCESS_TOKEN"))
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+
 
 # Criar pagamento PIX
 @app.route("/create_pix_payment", methods=["POST"])
