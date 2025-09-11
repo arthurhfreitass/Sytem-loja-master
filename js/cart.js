@@ -112,7 +112,7 @@ function finalizeOrder(paymentMethod) {
     const orderId = generateOrderCode();
 
     if (paymentMethod === 'pix') {
-        fetch('https://0a3afd9bae3a.ngrok-free.app/create_pix_payment', { // troque SEU_BACKEND pela URL do Flask/ngrok/render
+        fetch('https://66ad257b202a.ngrok-free.app/create_pix_payment', { // troque SEU_BACKEND pela URL do Flask/ngrok/render
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -175,7 +175,7 @@ function showPixModal(paymentId, qrCode, qrCodeBase64, orderId) {
 // Checa status do Pix
 function checkPixStatus(paymentId, orderId) {
     const interval = setInterval(() => {
-        fetch(`https://0a3afd9bae3a.ngrok-free.app/payment_status/${paymentId}`)
+        fetch(`https://66ad257b202a.ngrok-free.app/payment_status/${paymentId}`)
             .then(res => res.json())
             .then(data => {
                 if (data.status === "approved") {
