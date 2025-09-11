@@ -32,6 +32,12 @@
             font-size: 2rem;
             color: #28a745;
         }
+        
+        .production-status {
+            font-size: 1.2rem;
+            color: #dc3545;
+            font-weight: bold;
+        }
 
         .production-list {
             list-style: none;
@@ -82,20 +88,23 @@
 
             function getOrderIdFromUrl() {
                 const urlParams = new URLSearchParams(window.location.search);
-                return urlParams.get('id');
+                const orderId = urlParams.get('id');
+                // CORRIGIDO: Retorna o ID convertido para número
+                return orderId ? parseInt(orderId) : null;
             }
 
             function loadOrderForProduction() {
                 const orderId = getOrderIdFromUrl();
                 const orders = JSON.parse(localStorage.getItem('orders')) || [];
+                // CORRIGIDO: A comparação agora funciona porque ambos são números
                 const order = orders.find(o => o.id === orderId);
 
                 if (order) {
-                    // Atualiza o status do pedido para 'em_producao'
-                    // Isso é importante para que o pedido não seja mais visível no painel da cozinha
-                    order.status = 'in_progress';
-                    localStorage.setItem('orders', JSON.stringify(orders));
-                    
+                    // CORRIGIDO: Apenas atualiza o status se o pedido não estiver em produção
+                    if (order.status !== 'em_preparacao') {
+                        order.status = 'em_preparacao';
+                        localStorage.setItem('orders', JSON.stringify(orders));
+                    }
                     renderProductionDetails(order);
                 } else {
                     productionDetails.innerHTML = '<p>Pedido não encontrado ou já finalizado.</p>';
@@ -106,17 +115,18 @@
                 let itemsHtml = '';
                 if (order.items && Array.isArray(order.items)) {
                     order.items.forEach(item => {
-                        let details = `Tamanho: ${item.size.name}`;
-                        if (item.included && item.included.length > 0) {
-                            details += ` | Inclusos: ${item.included.join(', ')}`;
-                        }
-                        if (item.extras && item.extras.length > 0) {
-                            details += ` | Extras: ${item.extras.map(e => e.name).join(', ')}`;
-                        }
+                        const sizeName = item.size && item.size.name ? item.size.name : 'N/A';
+                        // CORRIGIDO: Acessa 'toppings' em vez de 'included'
+                        const toppingsText = item.toppings && item.toppings.length > 0 ? item.toppings.join(', ') : 'Nenhum';
+                        // CORRIGIDO: Acessa 'extras' corretamente
+                        const extrasText = item.extras && item.extras.length > 0 ? item.extras.map(e => e.name).join(', ') : 'Nenhum';
+
                         itemsHtml += `
                             <li class="production-item">
                                 <strong>${item.name}</strong>
-                                <p class="production-details">${details}</p>
+                                <p class="production-details">Tamanho: ${sizeName}</p>
+                                <p class="production-details">Complementos: ${toppingsText}</p>
+                                <p class="production-details">Extras: ${extrasText}</p>
                             </li>
                         `;
                     });
@@ -125,6 +135,7 @@
                 productionDetails.innerHTML = `
                     <div class="production-header">
                         <h2>Pedido #${order.id}</h2>
+                        <span class="production-status">Em Preparação</span>
                     </div>
                     <ul class="production-list">${itemsHtml}</ul>
                     <div class="production-actions">
@@ -140,13 +151,14 @@
 
             function finalizeOrder(orderId) {
                 const orders = JSON.parse(localStorage.getItem('orders')) || [];
-                const orderToFinalize = orders.find(o => o.id === orderId);
+                // CORRIGIDO: A busca usa o ID numérico
+                const orderToFinalize = orders.find(o => o.id === parseInt(orderId));
 
                 if (orderToFinalize) {
-                    orderToFinalize.status = 'completed';
+                    orderToFinalize.status = 'concluido'; // Use 'concluido' para consistência
                     localStorage.setItem('orders', JSON.stringify(orders));
                     alert('Pedido finalizado com sucesso!');
-                    window.location.href = 'kitchen.html'; // Volta para a lista
+                    window.location.href = 'kitchen.html';
                 }
             }
 
@@ -156,10 +168,9 @@
                 const orders = JSON.parse(localStorage.getItem('orders')) || [];
                 const orderStatus = orders.find(o => o.id === orderId)?.status;
 
-                if (orderStatus === 'in_progress') {
+                if (orderStatus === 'em_preparacao') {
                     e.preventDefault();
-                    e.returnValue = ''; // Exibe o pop-up de aviso
-                    alert('Por favor, finalize o pedido antes de sair.');
+                    e.returnValue = '';
                 }
             });
 

@@ -26,19 +26,21 @@ function showToast(message) {
 
 // Render carrinho
 // Função auxiliar para criar HTML de um item
-function createCartItemHTML(item, className = 'cart-item') {
+function createCartItemHTML(item, index, className = 'cart-item') {
     const { name, price, size, toppings = [], extras = [] } = item;
     const formattedPrice = Number(price).toFixed(2).replace('.', ',');
     const toppingsText = toppings.length ? toppings.join(', ') : 'Nenhum';
-    // CORRIGIDO: Acesso correto aos nomes dos extras
     const extrasText = extras.length ? extras.map(e => e.name).join(', ') : 'Nenhum';
 
     const li = document.createElement('li');
     li.classList.add(className);
     li.innerHTML = `
         <div class="item-info">
-            <span class="item-name">${name}</span>
-            <span class="item-price">R$ ${formattedPrice}</span>
+            <div class="item-info-text">
+                <span class="item-name">${name}</span>
+                <span class="item-price">R$ ${formattedPrice}</span>
+            </div>
+            <button class="remove-item" data-index="${index}">❌</button>
         </div>
         <ul class="item-details">
             <li><strong>Tamanho:</strong> ${size.name}</li>
@@ -60,8 +62,8 @@ function renderCart() {
         checkoutButton.disabled = true;
     } else {
         checkoutButton.disabled = false;
-        cart.forEach(item => {
-            cartList.appendChild(createCartItemHTML(item, 'cart-item'));
+        cart.forEach((item, index) => {
+            cartList.appendChild(createCartItemHTML(item, index, 'cart-item'));
             total += Number(item.price);
         });
     }
@@ -82,6 +84,13 @@ function renderReviewList() {
     reviewTotalPriceSpan.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
 }
 
+// Função para remover item
+function removeCartItem(index) {
+    cart.splice(index, 1); // remove do array
+    localStorage.setItem('tempCart', JSON.stringify(cart)); // atualiza localStorage
+    renderCart(); // atualiza tela
+    showToast("Item removido do carrinho.");
+}
 
 // Código 4 dígitos
 function generateOrderCode() {
@@ -95,7 +104,7 @@ function saveOrder(paymentMethod, orderId, status) {
         items: cart,
         total: cart.reduce((sum, item) => sum + Number(item.price), 0),
         payment: paymentMethod,
-        status: status // O status é dinâmico agora
+        status: status
     };
     let orders = JSON.parse(localStorage.getItem('orders')) || [];
     orders.push(orderData);
@@ -118,7 +127,6 @@ function finalizeOrder(paymentMethod) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 orderId: orderId,
-                // CORRIGIDO: Mapeamento de `toppings` e `extras` corretamente
                 items: cart.map(i => ({ name: i.name, price: Number(i.price), quantity: 1, toppings: i.toppings, extras: i.extras.map(e => e.name) })),
                 total: cart.reduce((sum, item) => sum + Number(item.price), 0),
                 payment: paymentMethod
@@ -134,7 +142,6 @@ function finalizeOrder(paymentMethod) {
         })
         .catch(() => showToast('Erro de conexão.'));
     } else if (paymentMethod === 'caixa') {
-        // Pedidos no caixa recebem status 'pendente'
         saveOrder(paymentMethod, orderId, 'pendente');
         finishTitle.textContent = "Pedido registrado no Caixa";
         finishMessage.textContent = "Dirija-se ao caixa para finalizar o pagamento. Seu número do pedido é:";
@@ -172,15 +179,12 @@ function showPixModal(paymentId, qrCode, qrCodeBase64, orderId) {
         showToast("Código Pix copiado!");
     });
 
-    console.log("🔍 Iniciando verificação do pagamento ID:", paymentId); // debug
     checkPixStatus(paymentId, orderId);
 }
-
 
 // Checa status do Pix
 function checkPixStatus(paymentId, orderId) {
     const url = `${API_BASE}/payment_status/${paymentId}`;
-    console.log("🔗 Chamando URL de status:", url);
 
     const interval = setInterval(() => {
         fetch(url)
@@ -188,13 +192,11 @@ function checkPixStatus(paymentId, orderId) {
                 const text = await res.text();
                 try {
                     const data = JSON.parse(text);
-                    console.log("📡 Status recebido:", data);
                     if (data.status === "approved") {
                         clearInterval(interval);
                         finishTitle.textContent = "Pagamento aprovado!";
                         finishMessage.textContent = "Seu pedido foi confirmado e está sendo preparado.";
                         orderCodeDisplay.textContent = `Código: ${orderId}`;
-                        // CORRIGIDO: Agora a função saveOrder recebe 3 argumentos.
                         saveOrder('pix', orderId, 'aprovado');
                         localStorage.removeItem('tempCart');
                         renderCart();
@@ -206,8 +208,6 @@ function checkPixStatus(paymentId, orderId) {
             .catch(err => console.error("Erro ao verificar pagamento:", err));
     }, 5000);
 }
-
-
 
 // Utils modal
 function showModal(modal) { modal.classList.add('show'); }
@@ -233,3 +233,11 @@ closeButtons.forEach(button => {
     button.addEventListener('click', e => hideModal(e.target.closest('.modal')));
 });
 document.addEventListener('DOMContentLoaded', renderCart);
+
+// Evento para remover item
+cartList.addEventListener('click', (e) => {
+    if (e.target.classList.contains('remove-item')) {
+        const index = e.target.getAttribute('data-index');
+        removeCartItem(index);
+    }
+});

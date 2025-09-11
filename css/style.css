@@ -1,10 +1,34 @@
-/* Estilos gerais */
+/*
+    ======================================
+    Melhorias no estilo CSS
+    ======================================
+
+    - Uso de variáveis CSS para cores e espaçamento.
+    - Otimização e agrupamento de seletores.
+    - Comentários para melhor organização e leitura.
+*/
+
+/* Variáveis CSS para um estilo mais fácil de gerenciar */
+:root {
+    --primary-color: #6A5ACD; /* Cor principal, como roxo */
+    --secondary-color: #28a745; /* Cor secundária, como verde para botões de sucesso */
+    --accent-color: #ff4d4f; /* Cor de destaque, como vermelho para o contador */
+    --text-color: #333;
+    --light-text-color: #555;
+    --border-color: #ccc;
+    --background-color: #f4f4f4;
+    --card-background: #fff;
+    --shadow-light: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-medium: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Estilos Gerais e Estrutura Principal */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
-    color: #333;
+    background-color: var(--background-color);
+    color: var(--text-color);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -13,11 +37,11 @@ body {
 
 .header {
     width: 100%;
-    background-color: #6A5ACD;
+    background-color: var(--primary-color);
     color: #fff;
     padding: 1.5rem;
     text-align: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow-light);
     position: relative;
 }
 
@@ -28,10 +52,16 @@ body {
     flex-grow: 1;
 }
 
-.product-selection-card {
-    background-color: #fff;
+/* Cartões e Componentes de Seleção de Produto */
+.product-selection-card,
+.cart-list-container,
+.modal-content {
+    background-color: var(--card-background);
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow-medium);
+}
+
+.product-selection-card {
     padding-bottom: 70px;
 }
 
@@ -43,7 +73,7 @@ body {
 
 .product-description {
     padding: 0 1.5rem;
-    color: #555;
+    color: var(--light-text-color);
     line-height: 1.5;
 }
 
@@ -73,7 +103,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.2s, border-color 0.2s;
@@ -93,33 +123,33 @@ body {
 }
 
 .option-price {
-    color: #6A5ACD;
+    color: var(--primary-color);
     font-weight: bold;
 }
 
+/* Botões de rádio e checkbox */
 .option-radio, .option-checkbox {
     -webkit-appearance: none;
     appearance: none;
     width: 20px;
     height: 20px;
-    border-radius: 50%;
-    border: 2px solid #ccc;
     cursor: pointer;
     margin-right: 15px;
 }
 
-.option-radio:checked {
-    border-color: #6A5ACD;
-    background-color: #6A5ACD;
+.option-radio {
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
 }
 
 .option-checkbox {
     border-radius: 4px;
+    border: 2px solid var(--border-color);
 }
 
-.option-checkbox:checked {
-    border-color: #6A5ACD;
-    background-color: #6A5ACD;
+.option-radio:checked, .option-checkbox:checked {
+    border-color: var(--primary-color);
+    background-color: var(--primary-color);
 }
 
 .small-text {
@@ -129,114 +159,167 @@ body {
     margin-bottom: 1rem;
 }
 
-/* Rodapé */
+/* Rodapé e Botões de Ação */
 .sticky-footer {
     position: fixed;
     bottom: 0;
     width: 100%;
     max-width: 600px;
     display: flex;
+    flex-direction: column; /* Coloca botões em coluna */
+    gap: 0.6rem; /* Espaço entre os botões */
     justify-content: center;
     align-items: center;
     padding: 1rem;
     background-color: #fff;
-    box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.12);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
     z-index: 999;
 }
 
-.add-to-cart-button, .checkout-footer-button {
-    padding: 1rem 1.5rem;
+/* Estilo geral dos botões */
+.add-to-cart-button,
+.checkout-footer-button {
     border: none;
-    border-radius: 4px;
-    font-size: 1.2rem;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: bold;
     cursor: pointer;
-    width: 100%; /* Botão sempre com 100% de largura */
+    width: 90%; /* Botões ocupam quase toda largura */
+    max-width: 500px; /* Limita tamanho em telas grandes */
     text-align: center;
-    text-decoration: none;
     color: #fff;
-    white-space: nowrap;
+    padding: 1rem 1.5rem;
+    transition: all 0.25s ease-in-out;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
 }
 
+/* Botão de adicionar */
 .add-to-cart-button {
-    background-color: #28a745;
+    background: linear-gradient(135deg, #28a745, #34d058);
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
+.add-to-cart-button:hover {
+    background: linear-gradient(135deg, #218838, #2fb24f);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.18);
+}
+
+/* Botão de finalizar pedido */
 .checkout-footer-button {
-    background-color: #6A5ACD;
-    display: flex; /* Adicionado para centralizar conteúdo */
+    background: linear-gradient(135deg, #6A5ACD, #7b68ee);
+    position: relative;
     justify-content: center;
-    align-items: center;
 }
 
-/* Estilos da modal de confirmação */
-/* Estilos da modal de confirmação */
-.modal {
-    /* ... (manter o código existente) ... */
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+.checkout-footer-button:hover {
+    background: linear-gradient(135deg, #5a4abf, #6a5adf);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.18);
 }
 
-.modal.show {
-    opacity: 1;
-    visibility: visible;
+/* Badge de quantidade */
+.checkout-footer-button .badge {
+    background-color: #ff4d4d;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: bold;
+    border-radius: 50%;
+    padding: 0.3rem 0.6rem;
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    animation: pulse 1.5s infinite;
 }
 
-.modal-content {
-    /* ... (manter o código existente) ... */
-    transform: scale(0.9);
-    transition: transform 0.3s ease;
+/* Animação chamando atenção */
+@keyframes pulse {
+    0% { transform: translateY(-50%) scale(1); opacity: 1; }
+    50% { transform: translateY(-50%) scale(1.2); opacity: 0.8; }
+    100% { transform: translateY(-50%) scale(1); opacity: 1; }
 }
 
-.modal.show .modal-content {
-    transform: scale(1);
+
+
+/* --- Botões checkout e voltar --- */
+.checkout-button,
+.back-button {
+    padding: 1rem;
+    flex-grow: 1;
+    font-size: 1rem;
+
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    min-height: 48px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+    -webkit-tap-highlight-color: transparent;
 }
-/* Estilos para o contador de itens no carrinho */
+
+/* Botão continuar compra (cinza) */
+.back-button {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+}
+
+.back-button:hover {
+    background: linear-gradient(135deg, #5a6268, #4e555b);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+/* Botão checkout (mesmo estilo do roxo) */
+.checkout-button {
+    background: linear-gradient(135deg, #6A5ACD, #7b68ee);
+}
+
+.checkout-button:hover {
+    background: linear-gradient(135deg, #5a4abf, #6a5adf);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+/* Estado active */
+.checkout-button:active,
+.back-button:active {
+    transform: translateY(0);
+    opacity: 0.95;
+}
+
+/* Contador de Itens do Carrinho */
 .cart-item-count {
-    background-color: #ff4d4f; /* Cor vermelha para o destaque */
+    background-color: var(--accent-color);
     color: #fff;
     border-radius: 50%;
     padding: 2px 8px;
     font-size: 0.8rem;
     font-weight: bold;
     margin-left: 8px;
-    display: none; /* Inicia escondido */
+    display: none;
 }
 
-/* Garante que o botão de finalizar pedido apareça sempre que houver itens, mesmo sem ter o item selecionado para adicionar. */
-.checkout-footer-button {
-    background-color: #6A5ACD;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative; /* Para posicionar o contador */
-}
-
-/* Regra para exibir o contador quando ele tem um número */
 .cart-item-count:not(:empty) {
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-
-/* CARINHO */
-
-/* Estilos para a página do carrinho */
+/* Estilos do Carrinho de Compras */
 .cart-list-container {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     padding: 1.5rem;
     margin-bottom: 2rem;
 }
 
-.order-list {
+.order-list,
+.cart-list {
     list-style: none;
     padding: 0;
     margin: 0;
@@ -255,7 +338,7 @@ body {
 }
 
 .remove-from-cart-btn {
-    background-color: #ff4d4f;
+    background-color: var(--accent-color);
     color: #fff;
     border: none;
     border-radius: 50%;
@@ -290,7 +373,7 @@ body {
 }
 
 .price {
-    color: #6A5ACD;
+    color: var(--primary-color);
 }
 
 .cart-actions {
@@ -300,27 +383,101 @@ body {
     margin-top: 1rem;
 }
 
-.checkout-button, .back-button {
-    flex-grow: 1;
-    padding: 1rem;
+/* Detalhes de cada item do carrinho */
+.cart-item {
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 1.5rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.cart-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.item-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px dashed #d0d0d0;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.item-info-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.item-name {
+    font-weight: bold;
+    color: var(--text-color);
+    font-size: 1.2rem;
+}
+
+.item-price {
+    font-weight: bold;
+    color: #007bff;
+    font-size: 1.2rem;
+}
+
+.item-details {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--light-text-color);
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.item-details li strong {
+    color: var(--text-color);
+}
+
+.remove-item {
+    background: none;
     border: none;
-    border-radius: 4px;
-    font-size: 1rem;
+    font-size: 1.5rem;
     cursor: pointer;
+    color: #dc3545;
+    transition: transform 0.2s ease, color 0.2s ease;
+    opacity: 0.7;
+    position: relative;
+    top: auto;
+    right: auto;
+}
+
+.remove-item:hover {
+    color: #c82333;
+    transform: scale(1.2);
+    opacity: 1;
+}
+
+.empty-cart-message {
     text-align: center;
-    text-decoration: none;
-    color: #fff;
+    color: #888;
+    font-style: italic;
+    padding: 2rem;
 }
 
-.checkout-button {
-    background-color: #28a745;
+.cart-total {
+    text-align: right;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--text-color);
+    margin-top: 1rem;
 }
 
-.back-button {
-    background-color: #6c757d;
-}
-
-/* Melhorias nos Modais */
+/* Modais (pop-ups) */
 .modal {
     display: flex;
     justify-content: center;
@@ -343,13 +500,10 @@ body {
 }
 
 .modal-content {
-    background-color: #fff;
     padding: 2.5rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    text-align: center;
     width: 90%;
     max-width: 400px;
-    text-align: center;
     transform: scale(0.95);
     transition: transform 0.3s ease;
 }
@@ -371,10 +525,10 @@ body {
     width: 100%;
     padding: 1rem;
     margin-bottom: 1rem;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     background-color: #f8f9fa;
-    color: #333;
+    color: var(--text-color);
     font-size: 1rem;
     cursor: pointer;
     transition: background-color 0.2s;
@@ -387,17 +541,17 @@ body {
 .order-code-display {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #6A5ACD;
+    color: var(--primary-color);
     margin-top: 1rem;
 }
 
-/* Estilos para a mensagem temporária de notificação */
+/* Mensagem temporária (Toast) */
 .toast-message {
     position: fixed;
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #333;
+    background-color: var(--text-color);
     color: #fff;
     padding: 1rem 2rem;
     border-radius: 4px;
@@ -412,3 +566,5 @@ body {
     opacity: 1;
     visibility: visible;
 }
+/* Ajustes finais para compatibilidade mobile */
+
