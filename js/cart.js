@@ -112,7 +112,7 @@ function finalizeOrder(paymentMethod) {
     const orderId = generateOrderCode();
 
     if (paymentMethod === 'pix') {
-        fetch('https://28f7d4854a1e.ngrok-free.app/create_pix_payment', {
+        fetch('http://SEU_BACKEND/create_pix_payment', { // troque SEU_BACKEND pela URL do Flask/ngrok/render
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -124,7 +124,8 @@ function finalizeOrder(paymentMethod) {
         })
         .then(response => response.json())
         .then(data => {
-            if (data.qr_code && data.qr_code_base64) {
+            if (data.id && data.qr_code && data.qr_code_base64) {
+                // 🔥 Aqui usamos o ID do pagamento real do Mercado Pago
                 showPixModal(data.id, data.qr_code, data.qr_code_base64, orderId);
             } else {
                 showToast('Erro ao gerar o Pix.');
@@ -166,13 +167,15 @@ function showPixModal(paymentId, qrCode, qrCodeBase64, orderId) {
         document.execCommand('copy');
         showToast("Código Pix copiado!");
     });
+
+    // 🔥 Agora verifica o pagamento usando o ID real do Mercado Pago
     checkPixStatus(paymentId, orderId);
 }
 
 // Checa status do Pix
 function checkPixStatus(paymentId, orderId) {
     const interval = setInterval(() => {
-        fetch(`http://127.0.0.1:5000/payment_status/${paymentId}`)
+        fetch(`http://https://28f7d4854a1e.ngrok-free.app/payment_status/${paymentId}`)
             .then(res => res.json())
             .then(data => {
                 if (data.status === "approved") {
@@ -186,7 +189,7 @@ function checkPixStatus(paymentId, orderId) {
                 }
             })
             .catch(() => {});
-    }, 5000);
+    }, 5000); // checa a cada 5s
 }
 
 // Utils modal
