@@ -21,145 +21,187 @@ const closeButtons = document.querySelectorAll('.close-button');
 
 // --- Funções Principais ---
 
-// Função para mostrar uma notificação temporária
+// Toast
 function showToast(message) {
     toastMessageEl.textContent = message;
     toastMessageEl.classList.add('show');
-    setTimeout(() => {
-        toastMessageEl.classList.remove('show');
-    }, 3000); // 3 segundos
+    setTimeout(() => toastMessageEl.classList.remove('show'), 3000);
 }
 
-// Função para carregar e renderizar o carrinho
+// Renderiza carrinho
 function renderCart() {
     cart = JSON.parse(localStorage.getItem('tempCart')) || [];
     cartList.innerHTML = '';
-    let cartTotal = 0;
+    let total = 0;
 
     if (cart.length === 0) {
-        cartList.innerHTML = '<li><span class="label">Carrinho vazio</span></li>';
+        cartList.innerHTML = '<p class="empty-cart-message">Seu carrinho está vazio.</p>';
         checkoutButton.disabled = true;
     } else {
         checkoutButton.disabled = false;
         cart.forEach(item => {
-            const itemElement = document.createElement('li');
-            itemElement.classList.add('order-item');
-            itemElement.dataset.id = item.id;
-            
-            let details = `Açaí ${item.size.name}`;
-            if (item.included.length > 0) {
-                details += ` c/ ${item.included.join(', ')}`;
-            }
-            if (item.extras.length > 0) {
-                details += ` e extras`;
-            }
+            const li = document.createElement('li');
+            li.classList.add('cart-item');
 
-            itemElement.innerHTML = `
-                <span>${details}</span>
-                <span>R$ ${item.price.toFixed(2)}</span>
-                <button class="remove-from-cart-btn" data-id="${item.id}">&times;</button>
+            const toppings = item.toppings && item.toppings.length > 0 ? item.toppings.join(', ') : 'Nenhum';
+            const extras = item.extras && item.extras.length > 0 ? item.extras.join(', ') : 'Nenhum';
+
+            li.innerHTML = `
+                <div class="item-info">
+                    <span class="item-name">${item.name}</span>
+                    <span class="item-price">R$ ${Number(item.price).toFixed(2).replace('.', ',')}</span>
+                </div>
+                <ul class="item-details">
+                    <li>**Tamanho:** ${item.size}</li>
+                    <li>**Complementos:** ${toppings}</li>
+                    <li>**Extras:** ${extras}</li>
+                </ul>
             `;
-            cartList.appendChild(itemElement);
-            cartTotal += item.price;
+            cartList.appendChild(li);
+            total += Number(item.price);
         });
     }
 
-    cartTotalPriceSpan.textContent = `R$ ${cartTotal.toFixed(2)}`;
-
-    // Evento de remover do carrinho
-    document.querySelectorAll('.remove-from-cart-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const itemId = e.target.dataset.id;
-            removeFromCart(itemId);
-        });
-    });
+    cartTotalPriceSpan.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
 }
 
-function removeFromCart(itemId) {
-    const removedItemName = cart.find(item => item.id === itemId)?.name || 'Item';
-    cart = cart.filter(item => item.id !== itemId);
-    localStorage.setItem('tempCart', JSON.stringify(cart));
-    renderCart();
-    showToast(`${removedItemName} removido!`);
-}
-
-// --- Funções das Modais e Finalização ---
-
+// Renderiza revisão
 function renderReviewList() {
     reviewList.innerHTML = '';
     let total = 0;
-    
+
     cart.forEach(item => {
-        const reviewItemElement = document.createElement('li');
-        reviewItemElement.classList.add('order-item-review');
-        let details = `Açaí ${item.size.name}`;
-        if (item.included.length > 0) {
-            details += ` (inclusos: ${item.included.join(', ')})`;
-        }
-        if (item.extras.length > 0) {
-            details += ` (extras: ${item.extras.map(e => e.name).join(', ')})`;
-        }
-        reviewItemElement.innerHTML = `
-            <span>${details}</span>
-            <span>R$ ${item.price.toFixed(2)}</span>
+        const li = document.createElement('li');
+        li.classList.add('order-item');
+
+        const toppings = item.toppings && item.toppings.length > 0 ? item.toppings.join(', ') : 'Nenhum';
+        const extras = item.extras && item.extras.length > 0 ? item.extras.join(', ') : 'Nenhum';
+
+        li.innerHTML = `
+            <div class="item-info">
+                <span class="item-name">${item.name}</span>
+                <span class="item-price">R$ ${Number(item.price).toFixed(2).replace('.', ',')}</span>
+            </div>
+            <ul class="item-details">
+                <li>**Tamanho:** ${item.size}</li>
+                <li>**Complementos:** ${toppings}</li>
+                <li>**Extras:** ${extras}</li>
+            </ul>
         `;
-        reviewList.appendChild(reviewItemElement);
-        total += item.price;
+        reviewList.appendChild(li);
+        total += Number(item.price);
     });
 
-    reviewTotalPriceSpan.textContent = `R$ ${total.toFixed(2)}`;
+    reviewTotalPriceSpan.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
 }
 
+// Gera ID único
 function generateOrderId() {
-    return Math.floor(1000 + Math.random() * 9000).toString();
+    return `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 }
 
-function saveOrder(paymentMethod) {
-    const orderId = generateOrderId();
+// Salva pedido
+function saveOrder(paymentMethod, orderId) {
     const orderData = {
         id: orderId,
         items: cart,
-        total: cart.reduce((sum, item) => sum + item.price, 0),
+        total: cart.reduce((sum, item) => sum + Number(item.price), 0),
         payment: paymentMethod,
         status: 'pendente'
     };
-    
+
     let orders = JSON.parse(localStorage.getItem('orders')) || [];
     orders.push(orderData);
     localStorage.setItem('orders', JSON.stringify(orders));
-
-    return orderId;
 }
 
+// Finaliza pedido
 function finalizeOrder(paymentMethod) {
     if (cart.length === 0) {
         showToast("Seu carrinho está vazio!");
         return;
     }
 
-    const orderId = saveOrder(paymentMethod);
-    
+    const orderId = generateOrderId();
+    const orderData = {
+        orderId: orderId,
+        items: cart.map(i => ({ name: i.name, price: Number(i.price), quantity: 1 })),
+        total: cart.reduce((sum, item) => sum + Number(item.price), 0),
+        payment: paymentMethod,
+    };
+
     if (paymentMethod === 'pix') {
-        finishTitle.textContent = "Pagamento via PIX";
-        finishMessage.textContent = "Realize o pagamento e informe o código do seu pedido ao caixa.";
-    } else if (paymentMethod === 'card') {
-        finishTitle.textContent = "Pagamento com Cartão";
-        finishMessage.textContent = "Dirija-se ao caixa para finalizar o pagamento. O número do seu pedido é:";
-    } else {
+        fetch('http://127.0.0.1:5000/create_pix_payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => Promise.reject(err));
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.qr_code && data.qr_code_base64) {
+                showPixModal(data.qr_code, data.qr_code_base64, orderId);
+            } else {
+                showToast('Erro ao gerar o Pix. Tente novamente.');
+                console.error('Erro na resposta do servidor:', data);
+            }
+        })
+        .catch(error => {
+            showToast('Erro de conexão. Verifique o servidor.');
+            console.error('Erro:', error);
+        });
+    } else if (paymentMethod === 'cash') {
+        saveOrder(paymentMethod, orderId);
         finishTitle.textContent = "Pagamento com Dinheiro";
         finishMessage.textContent = "Dirija-se ao caixa para finalizar o pagamento. O número do seu pedido é:";
+        orderCodeDisplay.textContent = orderId;
+
+        hideModal(reviewModal);
+        hideModal(paymentModal);
+        showModal(finishModal);
+
+        localStorage.removeItem('tempCart');
+        renderCart();
+    } else {
+        showToast('Método de pagamento não implementado.');
     }
-    
-    orderCodeDisplay.textContent = orderId;
-    
+}
+
+// Exibe modal Pix
+function showPixModal(qrCode, qrCodeBase64, orderId) {
     hideModal(reviewModal);
     hideModal(paymentModal);
     showModal(finishModal);
-    
+
+    finishTitle.textContent = "Pagamento com PIX";
+    finishMessage.innerHTML = `
+        <p>Aponte a câmera do seu celular para o QR Code para pagar.</p>
+        <img src="data:image/jpeg;base64,${qrCodeBase64}" alt="QR Code Pix" style="max-width: 200px; margin: 1rem auto; display: block;">
+        <p>Ou copie o código abaixo e pague no seu aplicativo de banco.</p>
+        <div class="pix-code-container">
+            <input type="text" id="pix-code" value="${qrCode}" readonly>
+            <button id="copy-pix-button">Copiar</button>
+        </div>
+        <p class="small-text">O número do seu pedido é: <span id="order-code-display">${orderId}</span></p>
+    `;
+
+    document.getElementById('copy-pix-button').addEventListener('click', () => {
+        const pixCodeInput = document.getElementById('pix-code');
+        pixCodeInput.select();
+        document.execCommand('copy');
+        showToast("Código Pix copiado!");
+    });
+
+    saveOrder('pix', orderId);
     localStorage.removeItem('tempCart');
     renderCart();
 }
 
+// Utilitários de modal
 function showModal(modal) { modal.classList.add('show'); }
 function hideModal(modal) { modal.classList.remove('show'); }
 
@@ -180,17 +222,14 @@ confirmReviewButton.addEventListener('click', () => {
 
 paymentOptions.forEach(button => {
     button.addEventListener('click', (e) => {
-        const paymentType = e.target.dataset.type;
-        finalizeOrder(paymentType);
+        finalizeOrder(e.target.dataset.type);
     });
 });
 
 closeButtons.forEach(button => {
     button.addEventListener('click', (e) => {
-        const modal = e.target.closest('.modal');
-        hideModal(modal);
+        hideModal(e.target.closest('.modal'));
     });
 });
 
-// Inicializa a página do carrinho
 document.addEventListener('DOMContentLoaded', renderCart);

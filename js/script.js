@@ -61,9 +61,7 @@ const addToCartPriceSpan = document.getElementById('add-to-cart-price');
 const cartItemCountEl = document.getElementById('cart-item-count');
 const checkoutFooterButton = document.getElementById('checkout-footer-button');
 
-// --- Funções Principais ---
-
-// Renderiza as opções de tamanho e extras na página.
+// Renderiza opções
 function renderOptions() {
     sizeOptionsContainer.innerHTML = '';
     acaiProduct.sizes.forEach((size, index) => {
@@ -90,7 +88,7 @@ function renderOptions() {
     });
 }
 
-// Atualiza a lista de complementos inclusos com base no tamanho selecionado.
+// Atualiza complementos inclusos
 function updateIncludedToppings() {
     const selectedSizeRadio = document.querySelector('input[name="acai-size"]:checked');
     
@@ -118,11 +116,10 @@ function updateIncludedToppings() {
     });
 }
 
-// Atualiza a descrição, o preço e a visibilidade dos botões de ação.
+// Atualiza seleção e preço
 function updateSelection() {
     const selectedSizeRadio = document.querySelector('input[name="acai-size"]:checked');
     
-    // Visibilidade do botão de Adicionar ao Carrinho
     if (selectedSizeRadio) {
         addToCartButton.style.display = 'flex';
     } else {
@@ -130,7 +127,6 @@ function updateSelection() {
         productDescriptionEl.textContent = '';
     }
     
-    // Calcula o preço total
     if (selectedSizeRadio) {
         let totalPrice = parseFloat(selectedSizeRadio.dataset.price);
         const sizeIndex = parseInt(selectedSizeRadio.dataset.sizeIndex, 10);
@@ -162,7 +158,7 @@ function updateSelection() {
     }
 }
 
-// Adiciona o item ao carrinho e exibe a modal de confirmação.
+// Adiciona item ao carrinho
 function addToCart() {
     const selectedSizeRadio = document.querySelector('input[name="acai-size"]:checked');
     if (!selectedSizeRadio) return;
@@ -171,7 +167,6 @@ function addToCart() {
     const sizePrice = parseFloat(selectedSizeRadio.dataset.price);
     
     const selectedIncluded = Array.from(document.querySelectorAll('input[name="acai-included"]:checked')).map(checkbox => checkbox.dataset.name);
-    
     const selectedExtras = Array.from(document.querySelectorAll('input[name="acai-extra"]:checked')).map(checkbox => ({
         name: checkbox.dataset.name,
         price: parseFloat(checkbox.dataset.price)
@@ -182,11 +177,11 @@ function addToCart() {
     
     const newOrder = {
         id: Math.random().toString(16).slice(2),
-        name: `Açaí ${sizeName}`,
-        size: { name: sizeName, price: sizePrice },
-        included: selectedIncluded,
-        extras: selectedExtras,
-        price: finalPrice
+        name: "Açaí",
+        size: sizeName,
+        price: finalPrice,
+        toppings: selectedIncluded,             // compatível com cart.js
+        extras: selectedExtras.map(e => e.name) // compatível com cart.js
     };
     
     let cart = JSON.parse(localStorage.getItem('tempCart')) || [];
@@ -197,7 +192,7 @@ function addToCart() {
     resetSelections();
 }
 
-// Limpa todas as seleções de opções.
+// Resetar seleções
 function resetSelections() {
     document.querySelectorAll('input[name="acai-size"]').forEach(radio => radio.checked = false);
     document.querySelectorAll('input[name="acai-included"]').forEach(checkbox => checkbox.checked = false);
@@ -207,7 +202,7 @@ function resetSelections() {
     updateSelection();
 }
 
-// Atualiza a contagem de itens no carrinho.
+// Atualiza contador do carrinho
 function updateCartCount() {
     const cart = JSON.parse(localStorage.getItem('tempCart')) || [];
     const itemCount = cart.length;
@@ -221,7 +216,7 @@ function updateCartCount() {
     }
 }
 
-// --- Eventos ---
+// Eventos
 sizeOptionsContainer.addEventListener('change', () => {
     updateIncludedToppings();
     updateSelection();
@@ -230,26 +225,8 @@ includedOptionsContainer.addEventListener('change', updateSelection);
 extraOptionsContainer.addEventListener('change', updateSelection);
 addToCartButton.addEventListener('click', addToCart);
 
-// Inicializa a aplicação quando o documento está pronto
 document.addEventListener('DOMContentLoaded', () => {
     renderOptions();
     updateCartCount();
     updateSelection();
 });
-
-function saveOrder(paymentMethod) {
-    const orderId = generateOrderId();
-    const orderData = {
-        id: orderId,
-        items: cart,
-        total: cart.reduce((sum, item) => sum + item.price, 0),
-        payment: paymentMethod,
-        status: 'pendente' // Adicionado
-    };
-    
-    let orders = JSON.parse(localStorage.getItem('orders')) || [];
-    orders.push(orderData);
-    localStorage.setItem('orders', JSON.stringify(orders));
-
-    return orderId;
-}
