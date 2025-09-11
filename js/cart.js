@@ -150,6 +150,7 @@ function showPixModal(paymentId, qrCode, qrCodeBase64, orderId) {
     hideModal(reviewModal);
     hideModal(paymentModal);
     showModal(finishModal);
+
     finishTitle.textContent = "Pagamento com PIX";
     finishMessage.innerHTML = `
         <p>Aponte a câmera para pagar via PIX.</p>
@@ -161,6 +162,7 @@ function showPixModal(paymentId, qrCode, qrCodeBase64, orderId) {
         </div>
         <p class="small-text">Aguardando confirmação...</p>
     `;
+
     document.getElementById('copy-pix-button').addEventListener('click', () => {
         const pixCodeInput = document.getElementById('pix-code');
         pixCodeInput.select();
@@ -168,16 +170,20 @@ function showPixModal(paymentId, qrCode, qrCodeBase64, orderId) {
         showToast("Código Pix copiado!");
     });
 
-    // 🔥 Agora verifica o pagamento usando o ID real do Mercado Pago
+    console.log("🔍 Iniciando verificação do pagamento ID:", paymentId); // debug
     checkPixStatus(paymentId, orderId);
 }
+
 
 // Checa status do Pix
 function checkPixStatus(paymentId, orderId) {
     const interval = setInterval(() => {
+        console.log("⏳ Consultando status do pagamento:", paymentId); // debug
+
         fetch(`https://66ad257b202a.ngrok-free.app/payment_status/${paymentId}`)
             .then(res => res.json())
             .then(data => {
+                console.log("📡 Status recebido:", data); // debug
                 if (data.status === "approved") {
                     clearInterval(interval);
                     finishTitle.textContent = "Pagamento aprovado!";
@@ -188,9 +194,10 @@ function checkPixStatus(paymentId, orderId) {
                     renderCart();
                 }
             })
-            .catch(() => {});
-    }, 5000); // checa a cada 5s
+            .catch(err => console.error("Erro ao verificar pagamento:", err));
+    }, 5000); // checa a cada 5 segundos
 }
+
 
 // Utils modal
 function showModal(modal) { modal.classList.add('show'); }
