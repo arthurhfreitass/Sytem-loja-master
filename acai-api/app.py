@@ -63,22 +63,10 @@ def create_pix_payment():
 def payment_status(payment_id):
     try:
         payment_info = sdk.payment().get(payment_id)
-        return jsonify(payment_info['response']), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-# ... (código anterior) ...
-
-# Verificar status de pagamento
-@app.route("/payment_status/<payment_id>", methods=["GET"])
-def payment_status(payment_id):
-    try:
-        payment_info = sdk.payment().get(payment_id)
         status = payment_info['response']['status']
         return jsonify({"status": status}), 200
     except Exception as e:
-         return jsonify({"status": "error", "error": str(e)}), 500
+        return jsonify({"status": "error", "error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
-
-
