@@ -103,6 +103,7 @@ function saveOrder(paymentMethod, orderId) {
     localStorage.setItem('orders', JSON.stringify(orders));
 }
 
+const API_BASE = "https://sytem-loja-master.onrender.com";
 // Finalizar pedido
 function finalizeOrder(paymentMethod) {
     if (cart.length === 0) {
@@ -112,7 +113,7 @@ function finalizeOrder(paymentMethod) {
     const orderId = generateOrderCode();
 
     if (paymentMethod === 'pix') {
-        fetch('https://66ad257b202a.ngrok-free.app/create_pix_payment', { // troque SEU_BACKEND pela URL do Flask/ngrok/render
+        fetch('${API_BASE}/create_pix_payment', { // troque SEU_BACKEND pela URL do Flask/ngrok/render
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -177,7 +178,7 @@ function showPixModal(paymentId, qrCode, qrCodeBase64, orderId) {
 
 // Checa status do Pix
 function checkPixStatus(paymentId, orderId) {
-    const url = `https://0a3afd9bae3a.ngrok-free.app/payment_status/${paymentId}`;
+    fetch(`${API_BASE}/payment_status/${paymentId}`)
     console.log("🔗 Chamando URL de status:", url);
 
     const interval = setInterval(() => {

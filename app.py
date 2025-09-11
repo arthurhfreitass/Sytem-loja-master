@@ -11,7 +11,7 @@ load_dotenv()
 sdk = SDK(os.environ.get("ACCESS_TOKEN"))
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 @app.after_request
 def apply_cors(response):
