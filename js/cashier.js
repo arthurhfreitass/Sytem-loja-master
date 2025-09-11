@@ -23,7 +23,7 @@ function updateFinances() {
 
     // Calcula o total de arrecadação
     const totalRevenue = orders
-        .filter(order => order.status === 'aprovado' || order.status === 'accepted' || order.status === 'in_progress' || order.status === 'completed')
+        .filter(order => order.status === 'aprovado' || order.status === 'em_preparacao' || order.status === 'concluido')
         .reduce((sum, order) => sum + order.total, 0);
 
     // Calcula o total de gastos
@@ -151,7 +151,6 @@ function handleExpense(e) {
     }
 }
 
-// ...
 function renderCashierOrders() {
     const orders = JSON.parse(localStorage.getItem('orders')) || [];
     ordersListContainer.innerHTML = '';
@@ -176,7 +175,7 @@ function renderCashierOrders() {
                 // CORRIGIDO: Agora as propriedades são acessadas corretamente
                 const sizeName = item.size && item.size.name ? item.size.name : 'N/A';
                 const toppingsText = item.toppings && item.toppings.length > 0 ? item.toppings.join(', ') : 'Nenhum';
-                const extrasText = item.extras && item.extras.length > 0 ? item.extras.join(', ') : 'Nenhum';
+                const extrasText = item.extras && item.extras.length > 0 ? item.extras.map(e => e.name).join(', ') : 'Nenhum';
 
                 itemsHtml += `
                     <li class="order-item-cashier">
@@ -210,7 +209,7 @@ function renderCashierOrders() {
 
 function updateOrderStatus(orderId, newStatus) {
     const orders = JSON.parse(localStorage.getItem('orders')) || [];
-    const orderToUpdate = orders.find(order => order.id === orderId);
+    const orderToUpdate = orders.find(order => String(order.id) === String(orderId)); // 🔥 garante comparação correta
     if (orderToUpdate) {
         orderToUpdate.status = newStatus;
         localStorage.setItem('orders', JSON.stringify(orders));
