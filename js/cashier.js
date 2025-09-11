@@ -151,10 +151,12 @@ function handleExpense(e) {
     }
 }
 
+// ...
 function renderCashierOrders() {
     const orders = JSON.parse(localStorage.getItem('orders')) || [];
     ordersListContainer.innerHTML = '';
     
+    // Filtra apenas os pedidos pendentes
     const pendingOrders = orders.filter(order => order.status === 'pendente');
 
     if (pendingOrders.length === 0) {
@@ -171,17 +173,19 @@ function renderCashierOrders() {
         let itemsHtml = '';
         if (order.items && Array.isArray(order.items)) {
             order.items.forEach(item => {
-                let details = `Tamanho: ${item.size.name}`;
-                if (item.included && item.included.length > 0) {
-                    details += ` | Inclusos: ${item.included.join(', ')}`;
-                }
-                if (item.extras && item.extras.length > 0) {
-                    details += ` | Extras: ${item.extras.map(e => e.name).join(', ')}`;
-                }
+                // CORRIGIDO: Agora as propriedades são acessadas corretamente
+                const sizeName = item.size && item.size.name ? item.size.name : 'N/A';
+                const toppingsText = item.toppings && item.toppings.length > 0 ? item.toppings.join(', ') : 'Nenhum';
+                const extrasText = item.extras && item.extras.length > 0 ? item.extras.join(', ') : 'Nenhum';
+
                 itemsHtml += `
                     <li class="order-item-cashier">
                         <span class="item-name">${item.name}</span>
-                        <p class="details">${details}</p>
+                        <p class="details">
+                            Tamanho: ${sizeName} | 
+                            Complementos: ${toppingsText} | 
+                            Extras: ${extrasText}
+                        </p>
                     </li>
                 `;
             });

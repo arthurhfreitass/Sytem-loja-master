@@ -178,10 +178,14 @@ function addToCart() {
     const newOrder = {
         id: Math.random().toString(16).slice(2),
         name: "Açaí",
-        size: sizeName,
+
+        size: {
+            name: sizeName,
+            price: sizePrice
+        },
         price: finalPrice,
-        toppings: selectedIncluded,             // compatível com cart.js
-        extras: selectedExtras.map(e => e.name) // compatível com cart.js
+        toppings: selectedIncluded,
+        extras: selectedExtras.map(e => e.name)
     };
     
     let cart = JSON.parse(localStorage.getItem('tempCart')) || [];
