@@ -5,7 +5,7 @@ const acaiProduct = {
     sizes: [
         { 
             name: "Pequeno (300ml)", 
-            price: 10.00,
+            price: 0.09,
             description: "O açaí pequeno é ideal para quem quer um lanche rápido e refrescante. Inclui duas opções de acompanhamentos.",
             includedToppingsCount: 2,
             availableIncludedToppings: [
