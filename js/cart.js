@@ -175,7 +175,7 @@ function showPixModal(paymentId, qrCode, qrCodeBase64, orderId) {
 // Checa status do Pix
 function checkPixStatus(paymentId, orderId) {
     const interval = setInterval(() => {
-        fetch(`http://https://28f7d4854a1e.ngrok-free.app/payment_status/${paymentId}`)
+        fetch(`https://16a822d727df.ngrok-free.app/payment_status/${paymentId}`)
             .then(res => res.json())
             .then(data => {
                 if (data.status === "approved") {
