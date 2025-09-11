@@ -112,7 +112,7 @@ function finalizeOrder(paymentMethod) {
     const orderId = generateOrderCode();
 
     if (paymentMethod === 'pix') {
-        fetch('http://127.0.0.1:5000/create_pix_payment', {
+        fetch('https://28f7d4854a1e.ngrok-free.app/create_pix_payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
