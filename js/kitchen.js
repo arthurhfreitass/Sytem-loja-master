@@ -23,7 +23,7 @@ async function renderOrders() {
     const orders = await fetchOrdersFromAPI(); // Busca da API!
     ordersListContainer.innerHTML = '';
     
-    const ordersToAccept = orders.filter(order => order.status === 'aprovado' || order.status === 'em_preparacao');
+    const ordersToAccept = orders.filter(order => order.status === 'aprovado' || order.status === 'em_preparacao' || order.status === 'pendente');
 
     if (ordersToAccept.length === 0) {
         noOrdersMessage.style.display = 'block';
@@ -66,7 +66,7 @@ async function renderOrders() {
         orderCard.innerHTML = `
             <div class="order-header">
                 <h2>Pedido #${order.id}</h2>
-                <span class="order-status">${order.status === 'aprovado' ? 'APROVADO' : 'EM PREPARAÇÃO'}</span>
+                <span class="order-status">${order.status.toUpperCase()}</span>
             </div>
             <ul class="order-list-items">${itemsHtml}</ul>
             <p>Total: R$ ${order.total.toFixed(2)}</p>

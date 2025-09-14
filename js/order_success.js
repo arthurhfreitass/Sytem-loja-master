@@ -20,12 +20,12 @@ const API_BASE = "https://sytem-loja-master.onrender.com";
 // Mapeia o status do pedido para informações visuais e de progresso
 const statusMap = {
     'aprovado': {
-        details: 'Estamos a preparar o seu pedido.',
+        details: 'Pedido aprovado e enviado para a cozinha.',
         progress: '50%'
     },
     'em_preparacao': {
         details: 'O seu pedido já está a ser montado.',
-        progress: '100%'
+        progress: '75%'
     },
     'concluido': {
         details: 'O seu pedido já pode ser retirado no balcão.',
@@ -40,6 +40,15 @@ const statusMap = {
 function updateUI(status) {
     Object.values(statusSteps).forEach(step => step.classList.remove('active'));
 
+    // Adiciona a classe 'active' aos passos que já foram concluídos
+    if (status === 'em_preparacao' || status === 'concluido') {
+        statusSteps.aprovado.classList.add('active');
+    }
+    if (status === 'concluido') {
+        statusSteps.em_preparacao.classList.add('active');
+    }
+    
+    // Adiciona a classe 'active' ao passo atual
     const stepElement = statusSteps[status];
     if (stepElement) {
         stepElement.classList.add('active');
