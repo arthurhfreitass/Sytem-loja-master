@@ -4,6 +4,7 @@ const noOrdersMessage = document.getElementById('no-orders-message');
 
 const API_BASE = "https://sytem-loja-master.onrender.com";
 
+// NOVO: Adicione esta função para buscar os pedidos da API.
 async function fetchOrdersFromAPI() {
     try {
         const response = await fetch(`${API_BASE}/orders`);
@@ -17,8 +18,9 @@ async function fetchOrdersFromAPI() {
     }
 }
 
+// AQUI: Substitua a sua função `renderOrders` por esta versão.
 async function renderOrders() {
-    const orders = await fetchOrdersFromAPI();
+    const orders = await fetchOrdersFromAPI(); // Busca da API!
     ordersListContainer.innerHTML = '';
     
     const ordersToAccept = orders.filter(order => order.status === 'aprovado' || order.status === 'em_preparacao');
@@ -76,6 +78,7 @@ async function renderOrders() {
     });
 }
 
+// AQUI: Substitua a sua função `updateOrderStatus` por esta versão.
 async function updateOrderStatus(orderId, newStatus) {
     try {
         const response = await fetch(`${API_BASE}/orders/${orderId}/status`, {

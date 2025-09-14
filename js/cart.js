@@ -97,6 +97,8 @@ function generateOrderCode() {
     return Math.floor(1000 + Math.random() * 9000);
 }
 
+const API_BASE = "https://sytem-loja-master.onrender.com";
+
 // NOVO: Adicione esta função para salvar o pedido na API.
 async function saveOrderToAPI(orderData) {
     try {
@@ -111,7 +113,7 @@ async function saveOrderToAPI(orderData) {
         }
 
         const data = await response.json();
-        return data.orderId; // Retorna o ID do pedido gerado pelo servidor
+        return data.orderId;
     } catch (error) {
         console.error('❌ Erro na comunicação com a API:', error);
         showToast('Erro ao salvar pedido. Por favor, tente novamente.');
@@ -126,6 +128,13 @@ async function finalizeOrder(paymentMethod) {
         return;
     }
     const orderId = generateOrderCode();
+    const orderData = {
+        id: orderId,
+        items: cart,
+        total: cart.reduce((sum, item) => sum + Number(item.price), 0),
+        payment: paymentMethod,
+        status: 'pendente'
+    };
 
     if (paymentMethod === 'pix') {
         fetch(`${API_BASE}/create_pix_payment`, { 
@@ -161,8 +170,6 @@ async function finalizeOrder(paymentMethod) {
         }
     }
 }
-
-const API_BASE = "https://sytem-loja-master.onrender.com";
 
 // PIX modal + verificação
 function showPixModal(paymentId, qrCode, qrCodeBase64, orderId) {
