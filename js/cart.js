@@ -86,9 +86,9 @@ function renderReviewList() {
 
 // Função para remover item
 function removeCartItem(index) {
-    cart.splice(index, 1); // remove do array
-    localStorage.setItem('tempCart', JSON.stringify(cart)); // atualiza localStorage
-    renderCart(); // atualiza tela
+    cart.splice(index, 1);
+    localStorage.setItem('tempCart', JSON.stringify(cart));
+    renderCart();
     showToast("Item removido do carrinho.");
 }
 
@@ -97,24 +97,30 @@ function generateOrderCode() {
     return Math.floor(1000 + Math.random() * 9000);
 }
 
-// Salvar pedido
-function saveOrder(paymentMethod, orderId, status) {
-    const orderData = {
-        id: orderId,
-        items: cart,
-        total: cart.reduce((sum, item) => sum + Number(item.price), 0),
-        payment: paymentMethod,
-        status: status
-    };
-    let orders = JSON.parse(localStorage.getItem('orders')) || [];
-    orders.push(orderData);
-    localStorage.setItem('orders', JSON.stringify(orders));
+// NOVO: Adicione esta função para salvar o pedido na API.
+async function saveOrderToAPI(orderData) {
+    try {
+        const response = await fetch(`${API_BASE}/orders`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Erro ao salvar o pedido na API.');
+        }
+
+        const data = await response.json();
+        return data.orderId; // Retorna o ID do pedido gerado pelo servidor
+    } catch (error) {
+        console.error('❌ Erro na comunicação com a API:', error);
+        showToast('Erro ao salvar pedido. Por favor, tente novamente.');
+        return null;
+    }
 }
 
-const API_BASE = "https://sytem-loja-master.onrender.com";
-
 // Finalizar pedido
-function finalizeOrder(paymentMethod) {
+async function finalizeOrder(paymentMethod) {
     if (cart.length === 0) {
         showToast("Seu carrinho está vazio!");
         return;
@@ -142,17 +148,21 @@ function finalizeOrder(paymentMethod) {
         })
         .catch(() => showToast('Erro de conexão.'));
     } else if (paymentMethod === 'caixa') {
-        saveOrder(paymentMethod, orderId, 'pendente');
-        finishTitle.textContent = "Pedido registrado no Caixa";
-        finishMessage.textContent = "Dirija-se ao caixa para finalizar o pagamento. Seu número do pedido é:";
-        orderCodeDisplay.textContent = `Código: ${orderId}`;
-        hideModal(reviewModal);
-        hideModal(paymentModal);
-        showModal(finishModal);
-        localStorage.removeItem('tempCart');
-        renderCart();
+        const savedOrderId = await saveOrderToAPI({ ...orderData, status: 'pendente' });
+        if (savedOrderId) {
+            finishTitle.textContent = "Pedido registrado no Caixa";
+            finishMessage.textContent = "Dirija-se ao caixa para finalizar o pagamento. Seu número do pedido é:";
+            orderCodeDisplay.textContent = `Código: ${savedOrderId}`;
+            hideModal(reviewModal);
+            hideModal(paymentModal);
+            showModal(finishModal);
+            localStorage.removeItem('tempCart');
+            renderCart();
+        }
     }
 }
+
+const API_BASE = "https://sytem-loja-master.onrender.com";
 
 // PIX modal + verificação
 function showPixModal(paymentId, qrCode, qrCodeBase64, orderId) {
@@ -194,7 +204,8 @@ function checkPixStatus(paymentId, orderId) {
                     const data = JSON.parse(text);
                     if (data.status === "approved") {
                         clearInterval(interval);
-                        saveOrder('pix', orderId, 'aprovado');
+                        // Agora o status é atualizado na API
+                        saveOrderToAPI({ id: orderId, payment: 'pix', status: 'aprovado' });
                         localStorage.removeItem('tempCart');
                         window.location.href = `order_success.html?id=${orderId}`;
                     }

@@ -17,6 +17,22 @@ const noExpensesMessage = document.getElementById('no-expenses-message');
 let balanceChart;
 let goalChart;
 
+const API_BASE = "https://sytem-loja-master.onrender.com";
+
+// NOVO: Adicione esta função para buscar os pedidos da API.
+async function fetchOrdersFromAPI() {
+    try {
+        const response = await fetch(`${API_BASE}/orders`);
+        if (!response.ok) {
+            throw new Error('Erro ao buscar pedidos da API.');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('❌ Erro na comunicação com a API:', error);
+        return [];
+    }
+}
+
 function updateFinances() {
     const orders = JSON.parse(localStorage.getItem('orders')) || [];
     const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
@@ -151,8 +167,9 @@ function handleExpense(e) {
     }
 }
 
-function renderCashierOrders() {
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
+// AQUI: Substitua a sua função `renderCashierOrders` por esta versão.
+async function renderCashierOrders() {
+    const orders = await fetchOrdersFromAPI(); // Busca da API!
     ordersListContainer.innerHTML = '';
     
     // Filtra apenas os pedidos pendentes
@@ -172,7 +189,6 @@ function renderCashierOrders() {
         let itemsHtml = '';
         if (order.items && Array.isArray(order.items)) {
             order.items.forEach(item => {
-                // CORRIGIDO: Agora as propriedades são acessadas corretamente
                 const sizeName = item.size && item.size.name ? item.size.name : 'N/A';
                 const toppingsText = item.toppings && item.toppings.length > 0 ? item.toppings.join(', ') : 'Nenhum';
                 const extrasText = item.extras && item.extras.length > 0 ? item.extras.map(e => e.name).join(', ') : 'Nenhum';
@@ -207,13 +223,22 @@ function renderCashierOrders() {
     });
 }
 
-function updateOrderStatus(orderId, newStatus) {
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
-    const orderToUpdate = orders.find(order => String(order.id) === String(orderId)); // 🔥 garante comparação correta
-    if (orderToUpdate) {
-        orderToUpdate.status = newStatus;
-        localStorage.setItem('orders', JSON.stringify(orders));
+// AQUI: Substitua a sua função `updateOrderStatus` por esta versão.
+async function updateOrderStatus(orderId, newStatus) {
+    try {
+        const response = await fetch(`${API_BASE}/orders/${orderId}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao atualizar status do pedido.');
+        }
+        
         renderCashierOrders();
+    } catch (error) {
+        console.error('❌ Erro ao atualizar status:', error);
     }
 }
 

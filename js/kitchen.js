@@ -2,8 +2,25 @@
 const ordersListContainer = document.getElementById('orders-list-container');
 const noOrdersMessage = document.getElementById('no-orders-message');
 
-function renderOrders() {
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
+const API_BASE = "https://sytem-loja-master.onrender.com";
+
+// NOVO: Adicione esta função para buscar os pedidos da API.
+async function fetchOrdersFromAPI() {
+    try {
+        const response = await fetch(`${API_BASE}/orders`);
+        if (!response.ok) {
+            throw new Error('Erro ao buscar pedidos da API.');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('❌ Erro na comunicação com a API:', error);
+        return [];
+    }
+}
+
+// AQUI: Substitua a sua função `renderOrders` por esta versão.
+async function renderOrders() {
+    const orders = await fetchOrdersFromAPI(); // Busca da API!
     ordersListContainer.innerHTML = '';
     
     // Filtra os pedidos que precisam ser aceitos (status 'aprovado')
@@ -58,13 +75,22 @@ function renderOrders() {
     });
 }
 
-function updateOrderStatus(orderId, newStatus) {
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
-    const orderToUpdate = orders.find(order => order.id === orderId);
-    if (orderToUpdate) {
-        orderToUpdate.status = newStatus;
-        localStorage.setItem('orders', JSON.stringify(orders));
+// AQUI: Substitua a sua função `updateOrderStatus` por esta versão.
+async function updateOrderStatus(orderId, newStatus) {
+    try {
+        const response = await fetch(`${API_BASE}/orders/${orderId}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao atualizar status do pedido.');
+        }
+        
         renderOrders();
+    } catch (error) {
+        console.error('❌ Erro ao atualizar status:', error);
     }
 }
 
