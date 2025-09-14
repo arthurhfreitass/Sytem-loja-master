@@ -168,29 +168,8 @@ def payment_status(payment_id):
 # ------------------------------
 # Warmup scheduler
 # ------------------------------
-def warmup_api():
-    warmup_url = f"{API_URL}/warmup"
-    print(f"[{time.strftime('%H:%M:%S')}] Enviando requisição de aquecimento para {warmup_url}...")
-    try:
-        response = requests.get(warmup_url)
-        if response.status_code == 200:
-            print(f"[{time.strftime('%H:%M:%S')}] Requisição de aquecimento bem-sucedida!")
-        else:
-            print(f"[{time.strftime('%H:%M:%S')}] Erro na requisição de aquecimento: Status {response.status_code}")
-    except requests.exceptions.RequestException as e:
-        print(f"[{time.strftime('%H:%M:%S')}] Erro ao conectar com a API para aquecimento: {e}")
-
-def run_scheduler():
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
-
 if __name__ == "__main__":
-    schedule.every(5).minutes.do(warmup_api)
-    scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
-    scheduler_thread.start()
-
     with app.app_context():
-        db.create_all()  # cria a tabela se não existir
-
-    app.run(port=5000, debug=True)
+        db.create_all()
+    # O Render gerencia a execução da aplicação, então não precisamos chamar app.run()
+    # app.run(port=5000, debug=True)
