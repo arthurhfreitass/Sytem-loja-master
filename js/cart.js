@@ -89,7 +89,7 @@ function removeCartItem(index) {
     cart.splice(index, 1);
     localStorage.setItem('tempCart', JSON.stringify(cart));
     renderCart();
-    showToast("Item removido do carrinho.");
+    showToast("Item removvido do carrinho.");
 }
 
 // Código 4 dígitos
