@@ -18,7 +18,9 @@ load_dotenv()
 sdk = SDK(os.environ.get("ACCESS_TOKEN"))
 
 app = Flask(__name__)
-CORS(app)
+
+# Configuração de CORS atualizada para permitir o domínio do Netlify
+CORS(app, resources={r"/*": {"origins": "https://terceiraoacai.netlify.app", "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"], "allow_headers": ["Content-Type"]}})
 
 API_URL = "https://sytem-loja-master.onrender.com"
 
