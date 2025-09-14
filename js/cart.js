@@ -194,12 +194,9 @@ function checkPixStatus(paymentId, orderId) {
                     const data = JSON.parse(text);
                     if (data.status === "approved") {
                         clearInterval(interval);
-                        finishTitle.textContent = "Pagamento aprovado!";
-                        finishMessage.textContent = "Seu pedido foi confirmado e está sendo preparado.";
-                        orderCodeDisplay.textContent = `Código: ${orderId}`;
                         saveOrder('pix', orderId, 'aprovado');
                         localStorage.removeItem('tempCart');
-                        renderCart();
+                        window.location.href = `order_success.html?id=${orderId}`;
                     }
                 } catch (e) {
                     console.error("❌ Resposta inesperada:", text);

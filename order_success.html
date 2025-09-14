@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acompanhar Pedido</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            background-color: #f0f4f8;
+            padding-bottom: 6rem;
+        }
+        .header {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .order-status-card {
+            text-align: center;
+            padding: 2.5rem 2rem;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 550px;
+            margin: 3rem auto;
+            position: relative;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .status-message {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #333333;
+            margin-bottom: 0.5rem;
+        }
+        .status-details {
+            font-size: 1.1rem;
+            color: #777777;
+            margin-bottom: 2rem;
+        }
+        .progress-container {
+            width: 80%;
+            margin: 2rem auto;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .progress-line {
+            position: absolute;
+            left: 20px;
+            height: calc(100% - 40px);
+            width: 6px;
+            background-color: #e0e0e0;
+            top: 20px;
+            border-radius: 3px;
+        }
+        .progress-fill {
+            position: absolute;
+            left: 20px;
+            width: 6px;
+            background-color: var(--secondary-color);
+            transition: height 0.8s ease-in-out;
+            height: 0;
+            border-radius: 3px;
+            animation: pulse-fill 2s infinite alternate;
+        }
+        @keyframes pulse-fill {
+            from { opacity: 0.5; }
+            to { opacity: 1; }
+        }
+        .progress-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        .progress-step-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffffff;
+            background-color: #cccccc;
+            border: 3px solid #ffffff;
+            z-index: 1;
+            transition: background-color 0.4s ease;
+        }
+        .progress-step.active .progress-step-icon {
+            background-color: var(--secondary-color);
+        }
+        .progress-step-text {
+            text-align: left;
+            margin-left: 1rem;
+        }
+        .progress-step-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #aaaaaa;
+            transition: color 0.4s ease;
+        }
+        .progress-step.active .progress-step-title {
+            color: #333333;
+        }
+        .order-code-box {
+            background-color: #f5f5f5;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+        }
+        .order-code-box p {
+            margin: 0;
+            color: #777777;
+            font-size: 0.9rem;
+        }
+        .order-code-box span {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        /* Estilo para o botão */
+        .back-to-home-button {
+            position: fixed;
+            bottom: 60px; /* Aumenta a distância da borda inferior */
+            left: 50%;
+            transform: translateX(-50%) translateY(50px);
+            width: auto;
+            padding: 1rem 2rem;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 100;
+        }
+        .back-to-home-button.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Acompanhar Pedido</h1>
+    </header>
+    <main class="container">
+        <div class="order-status-card">
+            <h2 class="status-message">Acompanhar Pedido</h2>
+            <p class="status-details" id="order-status-details">Veja o estado de preparação do seu açaí.</p>
+            <div class="progress-container">
+                <div class="progress-line"></div>
+                <div id="progress-fill" class="progress-fill"></div>
+                <div class="progress-step" id="step-aprovado">
+                    <div class="progress-step-icon">1</div>
+                    <div class="progress-step-text">
+                        <span class="progress-step-title">Pedido Recebido</span>
+                    </div>
+                </div>
+                <div class="progress-step" id="step-em_preparacao">
+                    <div class="progress-step-icon">2</div>
+                    <div class="progress-step-text">
+                        <span class="progress-step-title">Em Preparação</span>
+                    </div>
+                </div>
+                <div class="progress-step" id="step-concluido">
+                    <div class="progress-step-icon">3</div>
+                    <div class="progress-step-text">
+                        <span class="progress-step-title">Pronto para Retirada!</span>
+                    </div>
+                </div>
+            </div>
+            <div class="order-code-box">
+                <p>Seu código de retirada:</p>
+                <span id="order-code-display"></span>
+            </div>
+        </div>
+    </main>
+    <a href="index.html" class="back-to-home-button" id="back-to-home-button">Voltar à Página Inicial</a>
+    <script src="js/order_success.js"></script>
+</body>
+</html>
