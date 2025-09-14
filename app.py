@@ -1,4 +1,8 @@
 import os
+import requests
+import schedule
+import time
+import threading
 from flask import Flask, request, jsonify
 from mercadopago import SDK
 from dotenv import load_dotenv
@@ -13,12 +17,59 @@ sdk = SDK(os.environ.get("ACCESS_TOKEN"))
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
+# URL da sua API no Render (substitua pela URL real)
+# É crucial que esta URL seja a da sua API online, não a local
+API_URL = "https://seu-nome-da-api.onrender.com"
+
+# --- Lógica de Aquecimento (Warmup) ---
+
+def warmup_api():
+    """
+    Função que faz uma requisição para a rota de aquecimento da API
+    para mantê-la ativa e pronta para uso.
+    """
+    warmup_url = f"{API_URL}/warmup"
+    print(f"[{time.strftime('%H:%M:%S')}] Enviando requisição de aquecimento para {warmup_url}...")
+    try:
+        # A requisição de aquecimento pode ser uma simples requisição GET
+        response = requests.get(warmup_url)
+        if response.status_code == 200:
+            print(f"[{time.strftime('%H:%M:%S')}] Requisição de aquecimento bem-sucedida!")
+        else:
+            print(f"[{time.strftime('%H:%M:%S')}] Erro na requisição de aquecimento: Status {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        print(f"[{time.strftime('%H:%M:%S')}] Erro ao conectar com a API para aquecimento: {e}")
+
+def run_scheduler():
+    """
+    Função que executa o agendador em uma thread separada.
+    """
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+# --- Fim da Lógica de Aquecimento ---
+
 @app.after_request
 def apply_cors(response):
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
     return response
+
+# Rota para aquecer a API
+@app.route('/warmup', methods=["GET"])
+def warmup_endpoint():
+    """
+    Esta rota é chamada pelo agendador para aquecer a API.
+    Ela executa a lógica de inicialização sem processar dados do cliente.
+    """
+    # Exemplo de lógica de aquecimento: uma requisição simples ao SDK do Mercado Pago
+    try:
+        sdk.payment()
+        return jsonify({"message": "API aquecida"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # Criar pagamento PIX
 @app.route("/create_pix_payment", methods=["POST"])
@@ -77,4 +128,12 @@ def payment_status(payment_id):
 
 
 if __name__ == "__main__":
+    # Agendar a tarefa de aquecimento para rodar a cada 5 minutos
+    schedule.every(5).minutes.do(warmup_api)
+    
+    # Iniciar o agendador em uma thread separada
+    scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
+    scheduler_thread.start()
+    
+    # Iniciar a aplicação Flask
     app.run(port=5000, debug=True)
