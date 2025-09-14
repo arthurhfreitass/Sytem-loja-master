@@ -1,108 +1,49 @@
 import os
+import requests
+import schedule
+import time
+import threading
 from flask import Flask, request, jsonify
 from mercadopago import SDK
 from dotenv import load_dotenv
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.dialects.postgresql import JSONB, NUMERIC
 
-# ------------------------------
-# Configuração inicial
-# ------------------------------
+
 load_dotenv()
 
 sdk = SDK(os.environ.get("ACCESS_TOKEN"))
 
 app = Flask(__name__)
-
-# Configuração de CORS atualizada para permitir o domínio do Netlify
-CORS(app, resources={r"/*": {"origins": "https://terceiraoacai.netlify.app", "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"], "allow_headers": ["Content-Type"]}})
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 API_URL = "https://sytem-loja-master.onrender.com"
 
-# ------------------------------
-# Banco de dados (Supabase/Postgres)
-# ------------------------------
-db_url = os.environ.get("SUPABASE_DB_URL")
-if db_url and db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql://", 1)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = db_url
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+def warmup_api():
+    warmup_url = f"{API_URL}/warmup"
+    print(f"[{time.strftime('%H:%M:%S')}] Enviando requisição de aquecimento para {warmup_url}...")
+    try:
+        response = requests.get(warmup_url)
+        if response.status_code == 200:
+            print(f"[{time.strftime('%H:%M:%S')}] Requisição de aquecimento bem-sucedida!")
+        else:
+            print(f"[{time.strftime('%H:%M:%S')}] Erro na requisição de aquecimento: Status {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        print(f"[{time.strftime('%H:%M:%S')}] Erro ao conectar com a API para aquecimento: {e}")
 
-db = SQLAlchemy(app)
+def run_scheduler():
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
-class Order(db.Model):
-    __tablename__ = "orders"
-    id = db.Column(db.String, primary_key=True)
-    items = db.Column(JSONB, nullable=False)
-    total = db.Column(NUMERIC(10, 2), nullable=False)
-    payment = db.Column(db.String, nullable=False)
-    status = db.Column(db.String, nullable=False)
 
-# ------------------------------
-# Rotas de Pedidos
-# ------------------------------
-@app.route('/orders', methods=['POST'])
-def create_order():
-    data = request.json
-    order = Order(
-        id=str(data.get("id")),
-        items=data.get("items", []),
-        total=float(data.get("total", 0)),
-        payment=data.get("payment", "N/A"),
-        status=data.get("status", "pendente")
-    )
-    db.session.add(order)
-    db.session.commit()
-    return jsonify({"success": True, "orderId": order.id}), 201
+@app.after_request
+def apply_cors(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    return response
 
-@app.route('/orders', methods=['GET'])
-def list_orders():
-    orders = Order.query.all()
-    return jsonify([{
-        "id": o.id,
-        "items": o.items,
-        "total": float(o.total),
-        "payment": o.payment,
-        "status": o.status
-    } for o in orders])
-
-@app.route('/orders/<order_id>', methods=['GET'])
-def get_order(order_id):
-    order = Order.query.get(order_id)
-    if not order:
-        return jsonify({"error": "Pedido não encontrado"}), 404
-    return jsonify({
-        "id": order.id,
-        "items": order.items,
-        "total": float(order.total),
-        "payment": order.payment,
-        "status": order.status
-    })
-
-@app.route('/orders/<order_id>/status', methods=['PATCH'])
-def update_order_status(order_id):
-    order = Order.query.get(order_id)
-    if not order:
-        return jsonify({"error": "Pedido não encontrado"}), 404
-    new_status = request.json.get("status")
-    order.status = new_status
-    db.session.commit()
-    return jsonify({
-        "success": True,
-        "order": {
-            "id": order.id,
-            "items": order.items,
-            "total": float(order.total),
-            "payment": order.payment,
-            "status": order.status
-        }
-    })
-
-# ------------------------------
-# Rotas Mercado Pago (Pix)
-# ------------------------------
 @app.route('/warmup', methods=["GET"])
 def warmup_endpoint():
     try:
@@ -154,6 +95,7 @@ def create_pix_payment():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @app.route("/payment_status/<payment_id>", methods=["GET"])
 def payment_status(payment_id):
     try:
@@ -163,11 +105,11 @@ def payment_status(payment_id):
     except Exception as e:
         return jsonify({"status": "error", "error": str(e)}), 500
 
-# ------------------------------
-# Warmup scheduler
-# ------------------------------
+
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-    # O Render gerencia a execução da aplicação, então não precisamos chamar app.run()
-    # app.run(port=5000, debug=True)
+    schedule.every(5).minutes.do(warmup_api)
+    
+    scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
+    scheduler_thread.start()
+    
+    app.run(port=5000, debug=True)
