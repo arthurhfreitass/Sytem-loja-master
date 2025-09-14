@@ -19,7 +19,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 # URL da sua API no Render (substitua pela URL real)
 # É crucial que esta URL seja a da sua API online, não a local
-API_URL = "https://seu-nome-da-api.onrender.com"
+API_URL = "https://sytem-loja-master.onrender.com"
 
 # --- Lógica de Aquecimento (Warmup) ---
 
