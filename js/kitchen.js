@@ -4,7 +4,6 @@ const noOrdersMessage = document.getElementById('no-orders-message');
 
 const API_BASE = "https://sytem-loja-master.onrender.com";
 
-// NOVO: Adicione esta função para buscar os pedidos da API.
 async function fetchOrdersFromAPI() {
     try {
         const response = await fetch(`${API_BASE}/orders`);
@@ -18,13 +17,11 @@ async function fetchOrdersFromAPI() {
     }
 }
 
-// AQUI: Substitua a sua função `renderOrders` por esta versão.
 async function renderOrders() {
-    const orders = await fetchOrdersFromAPI(); // Busca da API!
+    const orders = await fetchOrdersFromAPI();
     ordersListContainer.innerHTML = '';
     
-    // Filtra os pedidos que precisam ser aceitos (status 'aprovado')
-    const ordersToAccept = orders.filter(order => order.status === 'aprovado');
+    const ordersToAccept = orders.filter(order => order.status === 'aprovado' || order.status === 'em_preparacao');
 
     if (ordersToAccept.length === 0) {
         noOrdersMessage.style.display = 'block';
@@ -37,8 +34,12 @@ async function renderOrders() {
         const orderCard = document.createElement('div');
         orderCard.classList.add('order-card');
         
-        // Agora o botão tem um data-id para identificar o pedido
-        const actionsHtml = `<button class="accept-button" data-id="${order.id}">Aceitar Pedido</button>`;
+        let actionsHtml = '';
+        if (order.status === 'aprovado') {
+            actionsHtml = `<button class="accept-button" data-id="${order.id}">Aceitar Pedido</button>`;
+        } else if (order.status === 'em_preparacao') {
+            actionsHtml = `<button class="finish-button" data-id="${order.id}">Pedido Pronto</button>`;
+        }
 
         let itemsHtml = '';
         if (order.items && Array.isArray(order.items)) {
@@ -63,7 +64,7 @@ async function renderOrders() {
         orderCard.innerHTML = `
             <div class="order-header">
                 <h2>Pedido #${order.id}</h2>
-                <span class="order-status">APROVADO</span>
+                <span class="order-status">${order.status === 'aprovado' ? 'APROVADO' : 'EM PREPARAÇÃO'}</span>
             </div>
             <ul class="order-list-items">${itemsHtml}</ul>
             <p>Total: R$ ${order.total.toFixed(2)}</p>
@@ -75,7 +76,6 @@ async function renderOrders() {
     });
 }
 
-// AQUI: Substitua a sua função `updateOrderStatus` por esta versão.
 async function updateOrderStatus(orderId, newStatus) {
     try {
         const response = await fetch(`${API_BASE}/orders/${orderId}/status`, {
@@ -96,16 +96,14 @@ async function updateOrderStatus(orderId, newStatus) {
 
 // Event Listeners para os botões do painel
 ordersListContainer.addEventListener('click', (e) => {
-    // Verifica se o clique foi no botão 'Aceitar Pedido'
     if (e.target.classList.contains('accept-button')) {
-        // Pega o ID do pedido do atributo 'data-id'
         const orderId = e.target.dataset.id;
-        // Atualiza o status do pedido para 'em_preparacao'
         updateOrderStatus(orderId, 'em_preparacao');
-        console.log(`Pedido ${orderId} aceito e enviado para produção!`); // Para debug
-        
-        // NOVO: Redireciona para a página de produção após aceitar o pedido
-        window.location.href = `production.html?id=${orderId}`;
+        console.log(`Pedido ${orderId} aceito e enviado para produção!`);
+    } else if (e.target.classList.contains('finish-button')) {
+        const orderId = e.target.dataset.id;
+        updateOrderStatus(orderId, 'concluido');
+        console.log(`Pedido ${orderId} concluído!`);
     }
 });
 

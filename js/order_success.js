@@ -15,6 +15,8 @@ const backToHomeButton = document.getElementById('back-to-home-button');
 let orderId = null;
 let statusInterval = null;
 
+const API_BASE = "https://sytem-loja-master.onrender.com";
+
 // Mapeia o status do pedido para informações visuais e de progresso
 const statusMap = {
     'aprovado': {
@@ -38,45 +40,39 @@ const statusMap = {
 function updateUI(status) {
     Object.values(statusSteps).forEach(step => step.classList.remove('active'));
 
-    let currentStepHeight = 0;
-    for (const key in statusSteps) {
-        if (key === status) {
-            statusSteps[key].classList.add('active');
-            currentStepHeight += statusSteps[key].offsetTop;
-            break;
-        }
-        statusSteps[key].classList.add('active');
-        currentStepHeight += statusSteps[key].offsetHeight;
+    const stepElement = statusSteps[status];
+    if (stepElement) {
+        stepElement.classList.add('active');
+        statusDetails.textContent = statusMap[status].details;
+        progressBarFill.style.width = statusMap[status].progress;
     }
-
-    const info = statusMap[status] || statusMap['aprovado'];
-    statusDetails.textContent = info.details;
-    progressBarFill.style.height = info.progress;
 
     if (status === 'concluido') {
         progressBarFill.classList.remove('loading');
         clearInterval(statusInterval);
         setTimeout(() => {
             alert('O seu pedido está pronto para ser retirado!');
-            backToHomeButton.classList.add('show'); // Mostra o botão
+            backToHomeButton.classList.add('show');
         }, 1000);
     } else {
         progressBarFill.classList.add('loading');
-        backToHomeButton.classList.remove('show'); // Esconde o botão
+        backToHomeButton.classList.remove('show');
     }
 }
 
 /**
- * Busca o status do pedido no localStorage e atualiza a interface.
+ * Busca o status do pedido na API e atualiza a interface.
  */
-function checkOrderStatus() {
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
-    const order = orders.find(o => String(o.id) === String(orderId));
-
-    if (order) {
+async function checkOrderStatus() {
+    try {
+        const response = await fetch(`${API_BASE}/orders/${orderId}`);
+        if (!response.ok) {
+            throw new Error('Erro ao buscar status do pedido.');
+        }
+        const order = await response.json();
         updateUI(order.status);
-    } else {
-        console.error('Pedido não encontrado no localStorage.');
+    } catch (error) {
+        console.error('❌ Erro na comunicação com a API:', error);
         clearInterval(statusInterval);
     }
 }
@@ -92,6 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
         checkOrderStatus();
     } else {
         orderCodeDisplay.textContent = 'N/A';
-        document.querySelector('.order-status-card').innerHTML = '<h2>Erro</h2><p>Não foi possível carregar as informações do pedido. Verifique se o link está correto.</p>';
+        document.querySelector('.order-status-steps').innerHTML = '<p>Pedido inválido.</p>';
     }
 });

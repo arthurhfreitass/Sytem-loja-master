@@ -19,7 +19,6 @@ let goalChart;
 
 const API_BASE = "https://sytem-loja-master.onrender.com";
 
-// NOVO: Adicione esta função para buscar os pedidos da API.
 async function fetchOrdersFromAPI() {
     try {
         const response = await fetch(`${API_BASE}/orders`);
@@ -37,25 +36,20 @@ function updateFinances() {
     const orders = JSON.parse(localStorage.getItem('orders')) || [];
     const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
 
-    // Calcula o total de arrecadação
     const totalRevenue = orders
         .filter(order => order.status === 'aprovado' || order.status === 'em_preparacao' || order.status === 'concluido')
         .reduce((sum, order) => sum + order.total, 0);
 
-    // Calcula o total de gastos
     const totalExpenses = expenses.reduce((sum, expense) => sum + expense.value, 0);
     const balance = totalRevenue - totalExpenses;
     const revenueDividedBy13 = totalRevenue / 13;
 
-    // Atualiza os displays na página
     totalRevenueDisplay.textContent = `R$ ${totalRevenue.toFixed(2)}`;
     totalExpensesDisplay.textContent = `R$ ${totalExpenses.toFixed(2)}`;
     balanceDisplay.textContent = `R$ ${balance.toFixed(2)}`;
     revenueDividedDisplay.textContent = `R$ ${revenueDividedBy13.toFixed(2)}`;
 
-    // Atualiza os gráficos
     renderCharts(totalRevenue, totalExpenses, balance);
-    // Atualiza o histórico de gastos
     renderExpensesHistory();
 }
 
@@ -109,7 +103,6 @@ function renderCharts(revenue, expenses, balance) {
     });
 }
 
-// Nova função para renderizar o histórico de gastos
 function renderExpensesHistory() {
     const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
     expenseHistoryContainer.innerHTML = '';
@@ -121,7 +114,6 @@ function renderExpensesHistory() {
 
     noExpensesMessage.style.display = 'none';
 
-    // Cria a tabela
     const table = document.createElement('table');
     table.innerHTML = `
         <thead>
@@ -167,12 +159,10 @@ function handleExpense(e) {
     }
 }
 
-// AQUI: Substitua a sua função `renderCashierOrders` por esta versão.
 async function renderCashierOrders() {
-    const orders = await fetchOrdersFromAPI(); // Busca da API!
+    const orders = await fetchOrdersFromAPI();
     ordersListContainer.innerHTML = '';
     
-    // Filtra apenas os pedidos pendentes
     const pendingOrders = orders.filter(order => order.status === 'pendente');
 
     if (pendingOrders.length === 0) {
@@ -223,7 +213,6 @@ async function renderCashierOrders() {
     });
 }
 
-// AQUI: Substitua a sua função `updateOrderStatus` por esta versão.
 async function updateOrderStatus(orderId, newStatus) {
     try {
         const response = await fetch(`${API_BASE}/orders/${orderId}/status`, {
