@@ -1,15 +1,10 @@
 import os
-import requests
-import schedule
-import time
-import threading
 from flask import Flask, request, jsonify
 from mercadopago import SDK
 from dotenv import load_dotenv
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import JSONB, NUMERIC
-from sqlalchemy.exc import SQLAlchemyError
 
 # ------------------------------
 # Configuração inicial
@@ -19,6 +14,8 @@ load_dotenv()
 sdk = SDK(os.environ.get("ACCESS_TOKEN"))
 
 app = Flask(__name__)
+
+# Configuração de CORS atualizada para permitir o domínio do Netlify
 CORS(app, resources={r"/*": {"origins": "https://terceiraoacai.netlify.app", "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"], "allow_headers": ["Content-Type"]}})
 
 API_URL = "https://sytem-loja-master.onrender.com"
@@ -27,11 +24,7 @@ API_URL = "https://sytem-loja-master.onrender.com"
 # Banco de dados (Supabase/Postgres)
 # ------------------------------
 db_url = os.environ.get("SUPABASE_DB_URL")
-
-if not db_url:
-    raise ValueError("A variável de ambiente SUPABASE_DB_URL não está definida.")
-
-if db_url.startswith("postgres://"):
+if db_url and db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
@@ -52,38 +45,17 @@ class Order(db.Model):
 # ------------------------------
 @app.route('/orders', methods=['POST'])
 def create_order():
-    try:
-        data = request.json
-        if not data:
-            return jsonify({"error": "Nenhum dado JSON recebido"}), 400
-
-        # Converte o ID para string para evitar erros de tipo
-        order_id = str(data.get("id"))
-        items = data.get("items", [])
-        total = float(data.get("total", 0))
-        payment = data.get("payment", "N/A")
-        status = data.get("status", "pendente")
-
-        order = Order(
-            id=order_id,
-            items=items,
-            total=total,
-            payment=payment,
-            status=status
-        )
-        db.session.add(order)
-        db.session.commit()
-        return jsonify({"success": True, "orderId": order.id}), 201
-
-    except (KeyError, ValueError) as e:
-        db.session.rollback()
-        return jsonify({"error": "Dados do pedido inválidos", "details": str(e)}), 400
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        return jsonify({"error": "Erro ao salvar o pedido no banco de dados", "details": str(e)}), 500
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": "Erro desconhecido ao processar o pedido", "details": str(e)}), 500
+    data = request.json
+    order = Order(
+        id=str(data.get("id")),
+        items=data.get("items", []),
+        total=float(data.get("total", 0)),
+        payment=data.get("payment", "N/A"),
+        status=data.get("status", "pendente")
+    )
+    db.session.add(order)
+    db.session.commit()
+    return jsonify({"success": True, "orderId": order.id}), 201
 
 @app.route('/orders', methods=['GET'])
 def list_orders():
@@ -197,3 +169,5 @@ def payment_status(payment_id):
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
+    # O Render gerencia a execução da aplicação, então não precisamos chamar app.run()
+    # app.run(port=5000, debug=True)
