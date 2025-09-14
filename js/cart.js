@@ -159,17 +159,29 @@ async function finalizeOrder(paymentMethod) {
     } else if (paymentMethod === 'caixa') {
         const savedOrderId = await saveOrderToAPI({ ...orderData, status: 'pendente' });
         if (savedOrderId) {
+            // Mostra instrução antes de redirecionar
             finishTitle.textContent = "Pedido registrado no Caixa";
-            finishMessage.textContent = "Dirija-se ao caixa para finalizar o pagamento. Seu número do pedido é:";
+            finishMessage.innerHTML = `
+                Dirija-se ao caixa e informe o código abaixo para realizar o pagamento:
+                <br><strong>${savedOrderId}</strong>
+            `;
             orderCodeDisplay.textContent = `Código: ${savedOrderId}`;
+            
             hideModal(reviewModal);
             hideModal(paymentModal);
             showModal(finishModal);
+
             localStorage.removeItem('tempCart');
             renderCart();
+
+            // Redireciona para acompanhamento após alguns segundos
+            setTimeout(() => {
+                window.location.href = `order_success.html?id=${savedOrderId}`;
+            }, 4000); // tempo pra ler a mensagem
         }
     }
 }
+
 
 // PIX modal + verificação
 function showPixModal(paymentId, qrCode, qrCodeBase64, orderId) {
@@ -212,7 +224,13 @@ function checkPixStatus(paymentId, orderId) {
                     if (data.status === "approved") {
                         clearInterval(interval);
                         // Agora o status é atualizado na API
-                        saveOrderToAPI({ id: orderId, payment: 'pix', status: 'aprovado' });
+                        saveOrderToAPI({
+                            id: orderId,
+                            items: cart,
+                            total: cart.reduce((sum, item) => sum + Number(item.price), 0),
+                            payment: 'pix',
+                            status: 'aprovado'
+                        });
                         localStorage.removeItem('tempCart');
                         window.location.href = `order_success.html?id=${orderId}`;
                     }
