@@ -3,7 +3,8 @@ import requests
 import schedule
 import time
 import threading
-import uuid # NOVO: Importa a biblioteca para gerar IDs únicos
+import random # NOVO: Importa a biblioteca para números aleatórios
+import string # NOVO: Importa para lidar com strings
 from flask import Flask, request, jsonify
 from mercadopago import SDK
 from dotenv import load_dotenv
@@ -18,9 +19,17 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 API_URL = "https://sytem-loja-master.onrender.com"
 
-# NOVO: Lista global para armazenar os pedidos em memória.
-# Em um sistema real, você usaria um banco de dados.
+# Lista global para armazenar os pedidos em memória.
 orders = []
+
+# NOVO: Função para gerar um ID numérico de 4 dígitos
+def generate_numeric_id():
+    while True:
+        # Gera um número aleatório de 4 dígitos (entre 1000 e 9999)
+        new_id = str(random.randint(1000, 9999))
+        # Verifica se o ID já existe
+        if not any(o['id'] == new_id for o in orders):
+            return new_id
 
 def warmup_api():
     warmup_url = f"{API_URL}/warmup"
@@ -42,7 +51,7 @@ def run_scheduler():
 @app.after_request
 def apply_cors(response):
     response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS, PATCH" # ATUALIZADO: Adiciona o método PATCH
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS, PATCH"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
     return response
 
@@ -54,25 +63,29 @@ def warmup_endpoint():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# NOVO ENDPOINT: Rota para criar um novo pedido
+# Rota para criar um novo pedido
 @app.route("/orders", methods=["POST"])
 def create_order():
     try:
         data = request.get_json()
         
-        # Gera um ID único e curto para o pedido
-        order_id = str(uuid.uuid4())[:8].upper()
+        # Gera o ID numérico de 4 dígitos
+        order_id = generate_numeric_id()
         
-        # Estrutura do pedido
+        # Define o status inicial com base no tipo de pagamento
+        if data.get("payment") == "caixa":
+            initial_status = "pendente_caixa"
+        else:
+            initial_status = "pendente"
+            
         new_order = {
             "id": order_id,
             "items": data.get("items", []),
             "total": data.get("total", 0),
             "payment": data.get("payment"),
-            "status": data.get("status", "pendente")
+            "status": initial_status # NOVO: Usa o status inicial definido
         }
         
-        # Adiciona o novo pedido à nossa lista em memória
         orders.append(new_order)
         print(f"Pedido {new_order['id']} criado com sucesso. Status: {new_order['status']}")
         
@@ -81,13 +94,12 @@ def create_order():
         print(f"Erro ao criar pedido: {e}")
         return jsonify({"error": str(e)}), 500
 
-# NOVO ENDPOINT: Rota para listar todos os pedidos
+# Rota para listar todos os pedidos
 @app.route("/orders", methods=["GET"])
 def list_orders():
-    # Retorna a lista de pedidos em formato JSON
     return jsonify(orders)
 
-# NOVO ENDPOINT: Rota para buscar um pedido por ID
+# Rota para buscar um pedido por ID
 @app.route("/orders/<order_id>", methods=["GET"])
 def get_order(order_id):
     order = next((o for o in orders if str(o['id']) == order_id), None)
@@ -96,7 +108,7 @@ def get_order(order_id):
     else:
         return jsonify({"error": "Pedido não encontrado"}), 404
 
-# NOVO ENDPOINT: Rota para atualizar o status de um pedido
+# Rota para atualizar o status de um pedido
 @app.route("/orders/<order_id>/status", methods=["PATCH"])
 def update_order_status(order_id):
     try:
@@ -161,7 +173,6 @@ def create_pix_payment():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @app.route("/payment_status/<payment_id>", methods=["GET"])
 def payment_status(payment_id):
     try:
@@ -170,7 +181,6 @@ def payment_status(payment_id):
         return jsonify({"status": status}), 200
     except Exception as e:
         return jsonify({"status": "error", "error": str(e)}), 500
-
 
 if __name__ == "__main__":
     schedule.every(5).minutes.do(warmup_api)
