@@ -130,6 +130,7 @@ async function saveOrderToAPI(orderData) {
 
 
 // Finalizar pedido
+// cart.js
 // Finalizar pedido
 async function finalizeOrder(paymentMethod) {
     if (cart.length === 0) {
@@ -151,9 +152,9 @@ async function finalizeOrder(paymentMethod) {
     };
 
     try {
-        // Lógica condicional para definir o status inicial do pedido
+        // CORREÇÃO: Define o status com base no método de pagamento
         if (paymentMethod === 'caixa') {
-            orderPayload.status = 'pendente_caixa'; // <--- CORREÇÃO AQUI
+            orderPayload.status = 'pendente_caixa';
         } else {
             orderPayload.status = 'pendente';
         }

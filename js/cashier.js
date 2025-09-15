@@ -163,7 +163,8 @@ async function renderCashierOrders() {
     const orders = await fetchOrdersFromAPI();
     ordersListContainer.innerHTML = '';
     
-    const pendingOrders = orders.filter(order => order.status === 'pendente');
+    // CORREÇÃO: Altera o filtro para buscar pedidos com status 'pendente_caixa'
+    const pendingOrders = orders.filter(order => order.status === 'pendente_caixa');
 
     if (pendingOrders.length === 0) {
         noOrdersMessage.style.display = 'block';
@@ -180,7 +181,8 @@ async function renderCashierOrders() {
         if (order.items && Array.isArray(order.items)) {
             order.items.forEach(item => {
                 const sizeName = item.size && item.size.name ? item.size.name : 'N/A';
-                const toppingsText = item.toppings && item.toppings.length > 0 ? item.toppings.join(', ') : 'Nenhum';
+                // CORREÇÃO: Mapeia toppings e extras para pegar apenas os nomes
+                const toppingsText = item.toppings && item.toppings.length > 0 ? item.toppings.map(t => t.name).join(', ') : 'Nenhum';
                 const extrasText = item.extras && item.extras.length > 0 ? item.extras.map(e => e.name).join(', ') : 'Nenhum';
 
                 itemsHtml += `
