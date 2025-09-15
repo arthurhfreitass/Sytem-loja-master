@@ -10,21 +10,26 @@
 
 /* Variáveis CSS para um estilo mais fácil de gerenciar */
 :root {
-    --primary-color: #6A5ACD; /* Cor principal, como roxo */
-    --secondary-color: #28a745; /* Cor secundária, como verde para botões de sucesso */
-    --accent-color: #ff4d4f; /* Cor de destaque, como vermelho para o contador */
-    --text-color: #333;
-    --light-text-color: #555;
-    --border-color: #ccc;
-    --background-color: #f4f4f4;
-    --card-background: #fff;
-    --shadow-light: 0 2px 4px rgba(0,0,0,0.1);
-    --shadow-medium: 0 4px 8px rgba(0,0,0,0.1);
+    --primary-color: #7A42E4; /* Roxo mais vibrante e moderno */
+    --secondary-color: #38C759; /* Verde para sucesso */
+    --accent-color: #FF5A5F; /* Vermelho para destaque */
+    --text-color: #2D2D2D;
+    --light-text-color: #6D6D6D;
+    --border-color: #E0E0E0;
+    --background-color: #F8F9FA;
+    --card-background: #FFFFFF;
+    --shadow-small: 0px 4px 6px rgba(0, 0, 0, 0.08);
+    --shadow-medium: 0px 8px 12px rgba(0, 0, 0, 0.1);
+    
+    /* Variáveis para espaçamento */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 1rem;
+    --spacing-md: 1.5rem;
+    --spacing-lg: 2rem;
 }
-
 /* Estilos Gerais e Estrutura Principal */
 body {
-    font-family: Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     margin: 0;
     padding: 0;
     background-color: var(--background-color);
@@ -36,19 +41,18 @@ body {
 }
 
 .header {
-    width: 100%;
     background-color: var(--primary-color);
+    width: 100%;
     color: #fff;
-    padding: 1.5rem;
+    padding: var(--spacing-md) 0;
     text-align: center;
-    box-shadow: var(--shadow-light);
-    position: relative;
+    box-shadow: var(--shadow-medium);
 }
 
 .container {
-    max-width: 600px;
+    max-width: 650px; /* Aumentamos um pouco para dar mais espaço */
     width: 100%;
-    padding: 1rem;
+    padding: var(--spacing-sm);
     flex-grow: 1;
 }
 
@@ -57,12 +61,14 @@ body {
 .cart-list-container,
 .modal-content {
     background-color: var(--card-background);
-    border-radius: 8px;
+    border-radius: 12px; /* Aumentamos o raio da borda para um visual mais suave */
     box-shadow: var(--shadow-medium);
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-md);
 }
 
 .product-selection-card {
-    padding-bottom: 70px;
+    padding-bottom: 90px; /* Aumentei o padding para o footer não cobrir o conteúdo */
 }
 
 .product-image {
@@ -102,15 +108,22 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem;
+    padding: var(--spacing-sm) var(--spacing-md);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
-    transition: background-color 0.2s, border-color 0.2s;
+    transition: all 0.2s ease-in-out;
 }
 
 .option-item:hover {
-    background-color: #f1f1f1;
+    background-color: #F1F3F5;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-small);
+}
+
+.option-item.selected { /* Nova classe para destacar a opção selecionada */
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(122, 66, 228, 0.4);
 }
 
 .option-item.disabled {
@@ -150,7 +163,9 @@ body {
 .option-radio:checked, .option-checkbox:checked {
     border-color: var(--primary-color);
     background-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(122, 66, 228, 0.2);
 }
+
 
 .small-text {
     font-size: 0.8em;
@@ -161,20 +176,18 @@ body {
 
 /* Rodapé e Botões de Ação */
 .sticky-footer {
-    position: fixed;
+    position: sticky; /* Muda de fixed para sticky para um comportamento mais natural em alguns casos */
     bottom: 0;
     width: 100%;
-    max-width: 600px;
+    max-width: 650px;
     display: flex;
-    flex-direction: column; /* Coloca botões em coluna */
-    gap: 0.6rem; /* Espaço entre os botões */
-    justify-content: center;
-    align-items: center;
-    padding: 1rem;
-    background-color: #fff;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.12);
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    background-color: var(--card-background);
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
     z-index: 999;
 }
 
@@ -182,44 +195,49 @@ body {
 .add-to-cart-button,
 .checkout-footer-button {
     border: none;
-    border-radius: 12px;
+    border-radius: 12px; /* Mantém a borda arredondada para um visual moderno */
     font-size: 1.1rem;
     font-weight: bold;
     cursor: pointer;
-    width: 90%; /* Botões ocupam quase toda largura */
-    max-width: 500px; /* Limita tamanho em telas grandes */
+    width: 90%;
+    max-width: 500px;
     text-align: center;
     color: #fff;
-    padding: 1rem 1.5rem;
+    padding: 1rem 1rem;
     transition: all 0.25s ease-in-out;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12); /* Sombra suave para profundidade */
 }
 
 /* Botão de adicionar */
 .add-to-cart-button {
-    background: linear-gradient(135deg, #28a745, #34d058);
+    background-color: var(--secondary-color); /* Usa a cor verde sólida */
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .add-to-cart-button:hover {
-    background: linear-gradient(135deg, #218838, #2fb24f);
+    background-color: #218838; /* Cor um pouco mais escura no hover para feedback */
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0,0,0,0.18);
 }
 
 /* Botão de finalizar pedido */
 .checkout-footer-button {
-    background: linear-gradient(135deg, #6A5ACD, #7b68ee);
-    position: relative;
+    background-color: var(--primary-color); /* Usa a cor roxa sólida */
     justify-content: center;
 }
 
 .checkout-footer-button:hover {
-    background: linear-gradient(135deg, #5a4abf, #6a5adf);
+    background-color: #5a4abf; /* Cor um pouco mais escura no hover */
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0,0,0,0.18);
+}
+
+@keyframes pulse {
+    0% { transform: translateY(-50%) scale(1); }
+    50% { transform: translateY(-50%) scale(1.05); }
+    100% { transform: translateY(-50%) scale(1); }
 }
 
 /* Badge de quantidade */

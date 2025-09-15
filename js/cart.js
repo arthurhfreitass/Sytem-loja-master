@@ -130,13 +130,13 @@ async function saveOrderToAPI(orderData) {
 
 
 // Finalizar pedido
+// Finalizar pedido
 async function finalizeOrder(paymentMethod) {
     if (cart.length === 0) {
         showToast("Seu carrinho está vazio!");
         return;
     }
     
-    // NOVO: A API agora gera o ID, então não precisamos mais do `generateOrderCode()` aqui.
     // O orderId será obtido após o envio para a API.
     const orderPayload = {
         items: cart.map(i => ({ 
@@ -151,7 +151,14 @@ async function finalizeOrder(paymentMethod) {
     };
 
     try {
-        // Envia o pedido para a API. O status inicial é definido na API com base no tipo de pagamento.
+        // Lógica condicional para definir o status inicial do pedido
+        if (paymentMethod === 'caixa') {
+            orderPayload.status = 'pendente_caixa'; // <--- CORREÇÃO AQUI
+        } else {
+            orderPayload.status = 'pendente';
+        }
+
+        // Envia o pedido para a API.
         const response = await fetch(`${API_BASE}/orders`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -165,11 +172,9 @@ async function finalizeOrder(paymentMethod) {
         const data = await response.json();
         const orderId = data.orderId;
 
-        // Limpa o carrinho após o pedido ser criado
         localStorage.removeItem('tempCart');
         renderCart();
         
-        // NOVO: Lógica condicional para o fluxo de pagamento
         if (paymentMethod === 'caixa') {
             await startCashierPaymentFlow(orderId);
         } else if (paymentMethod === 'pix') {
@@ -180,7 +185,6 @@ async function finalizeOrder(paymentMethod) {
         showToast("❌ Erro ao finalizar o pedido. Tente novamente.");
     }
 }
-
 
 // NOVO: Função para exibir o modal e gerenciar o fluxo de pagamento no caixa
 async function startCashierPaymentFlow(orderId) {

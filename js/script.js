@@ -234,3 +234,16 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartCount();
     updateSelection();
 });
+// No seu script.js, ao lidar com o clique nas opções:
+const optionItems = document.querySelectorAll('.option-item');
+optionItems.forEach(item => {
+    item.addEventListener('click', () => {
+        // Remova a classe 'selected' de todos os itens do grupo
+        const parentGroup = item.closest('.option-group');
+        parentGroup.querySelectorAll('.option-item').forEach(el => {
+            el.classList.remove('selected');
+        });
+        // Adicione a classe 'selected' ao item clicado
+        item.classList.add('selected');
+    });
+});
