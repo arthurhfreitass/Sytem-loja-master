@@ -44,6 +44,7 @@ body {
 }
 
 .header {
+    text-align: center;
     background-color: var(--primary-color);
     width: 100%;
     color: #fff;
@@ -58,22 +59,12 @@ body {
     padding: var(--spacing-sm);
     flex-grow: 1;
 }
+
 /*
     ======================================
-    Melhoria da Imagem e Layout
+    Estilos da Página de Seleção (index.html)
     ======================================
-    
-    - Ajustes no espaçamento e alinhamento para um visual mais profissional.
 */
-.product-selection-card {
-    /* Remove a imagem de dentro do card, pois agora ela está no novo cabeçalho */
-    padding-top: var(--spacing-md);
-    background-color: var(--card-background);
-    border-radius: 12px;
-    box-shadow: var(--shadow-medium);
-    margin-bottom: var(--spacing-md);
-    padding-bottom: 90px;
-}
 .product-header {
     width: 100%;
     max-width: 650px;
@@ -83,8 +74,8 @@ body {
 
 .product-header-image {
     width: 100%;
-    height: 250px; /* Ajuste a altura conforme preferir */
-    object-fit: cover; /* Garante que a imagem cubra o espaço sem distorcer */
+    height: 250px;
+    object-fit: cover;
     display: block;
 }
 
@@ -105,24 +96,27 @@ body {
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
+.product-selection-card {
+    padding-top: var(--spacing-md);
+    background-color: var(--card-background);
+    border-radius: 12px;
+    box-shadow: var(--shadow-medium);
+    margin-bottom: var(--spacing-md);
+    padding-bottom: 90px;
+}
 
 .product-image {
-    /* Garante que a imagem ocupe a largura total do card */
     width: 100%;
-    /* Adiciona margem para separar a imagem do conteúdo abaixo */
     margin-bottom: var(--spacing-md);
 }
 
 .product-description {
-    /* Ajusta o padding para um espaçamento mais uniforme */
     padding: 0 var(--spacing-md);
     color: var(--light-text-color);
     line-height: 1.5;
 }
 
-/* Container de todas as opções (tamanho, inclusos, extras) */
 .options-container {
-    /* Centraliza o container de opções */
     max-width: 600px;
     margin: 0 auto;
     padding: 0 var(--spacing-md);
@@ -132,20 +126,12 @@ body {
     margin-bottom: var(--spacing-lg);
 }
 
-/*
-    ======================================
-    Melhoria das Opções de Seleção
-    ======================================
-    
-    - Otimiza o design dos botões de opção para torná-los mais
-      visíveis e profissionais.
-*/
 .option-group h2 {
-    font-size: 1.75rem; /* Títulos maiores e mais impactantes */
+    font-size: 1.75rem;
     border-bottom: 2px solid var(--border-color);
     padding-bottom: 0.75rem;
     margin-bottom: var(--spacing-sm);
-    font-weight: 600; /* Deixa o título um pouco mais leve */
+    font-weight: 600;
 }
 
 .option-list {
@@ -154,13 +140,12 @@ body {
     gap: 10px;
 }
 
-/* Item de opção individual */
 .option-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.2rem var(--spacing-md); /* Aumenta o padding para mais área de clique */
-    border: 2px solid var(--border-color); /* Borda mais grossa para destacar */
+    padding: 1.2rem var(--spacing-md);
+    border: 2px solid var(--border-color);
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
@@ -173,7 +158,6 @@ body {
 }
 
 .option-item.selected {
-    /* Destaca a opção selecionada de forma mais clara */
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(122, 66, 228, 0.4);
 }
@@ -187,23 +171,17 @@ body {
     flex-grow: 1;
 }
 
-/*
-    Ajuste no tamanho do texto dos preços
-*/
 .option-price {
-    font-size: 1.1rem; /* Aumenta a fonte para melhor legibilidade */
+    font-size: 1.1rem;
     font-weight: bold;
     color: var(--primary-color);
 }
 
-/*
-    Ajuste nos inputs de Rádio e Checkbox para melhor visualização
-*/
 .option-radio, 
 .option-checkbox {
     -webkit-appearance: none;
     appearance: none;
-    width: 24px; /* Aumenta o tamanho do input */
+    width: 24px;
     height: 24px;
     cursor: pointer;
     margin-right: var(--spacing-sm);
@@ -212,12 +190,12 @@ body {
 
 .option-radio {
     border-radius: 50%;
-    border: 3px solid var(--border-color); /* Borda mais grossa */
+    border: 3px solid var(--border-color);
 }
 
 .option-checkbox {
     border-radius: 4px;
-    border: 3px solid var(--border-color); /* Borda mais grossa */
+    border: 3px solid var(--border-color);
 }
 
 .option-radio:checked, 
@@ -238,9 +216,6 @@ body {
     ======================================
     Rodapé Fixo (Sticky Footer)
     ======================================
-    
-    - Usando 'position: fixed' para garantir que o rodapé esteja sempre visível
-      na parte inferior da tela, resolvendo o problema de sobreposição.
 */
 .sticky-footer {
     position: fixed;
@@ -249,9 +224,9 @@ body {
     right: 0;
     width: 100%;
     display: flex;
-    justify-content: center; /* Centraliza o conteúdo horizontalmente */
+    justify-content: center;
     align-items: center;
-    padding: var(--spacing-sm); /* Ajusta o padding para ser uniforme */
+    padding: var(--spacing-sm);
     background-color: var(--card-background);
     box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
     border-top-left-radius: 16px;
@@ -261,8 +236,8 @@ body {
 
 .sticky-footer .container-inner {
     width: 100%;
-    max-width: 650px; /* Garante que os botões não fiquem grandes demais em telas largas */
-    padding: 0 var(--spacing-sm); /* Adiciona o padding horizontal */
+    max-width: 650px;
+    padding: 0 var(--spacing-sm);
     display: flex;
     flex-direction: column;
     gap: var(--spacing-sm);
@@ -272,8 +247,6 @@ body {
     ======================================
     Botões de Ação
     ======================================
-    
-    - Estilos unificados para os botões do rodapé.
 */
 .add-to-cart-button,
 .checkout-footer-button {
@@ -313,6 +286,7 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0,0,0,0.18);
 }
+
 /* Contador de Itens do Carrinho */
 .cart-item-count {
     background-color: var(--accent-color);
@@ -329,20 +303,9 @@ body {
 
 /*
     ======================================
-    Animações e Outros Estilos
+    Estilos da Página do Carrinho (cart.html)
     ======================================
 */
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
-.cart-item-count.has-items {
-    animation: pulse 1.5s infinite;
-}
-
-/* Estilos do Carrinho de Compras */
 .cart-list-container {
     padding: 1.5rem;
     margin-bottom: 2rem;
@@ -355,65 +318,7 @@ body {
     margin: 0;
 }
 
-.order-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    border-bottom: 1px solid #eee;
-}
-
-.order-item:last-child {
-    border-bottom: none;
-}
-
-.remove-from-cart-btn {
-    background-color: var(--accent-color);
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    font-size: 1.2rem;
-    cursor: pointer;
-    line-height: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-left: 1rem;
-    transition: background-color 0.2s ease;
-}
-
-.remove-from-cart-btn:hover {
-    background-color: #e53935;
-}
-
-.cart-summary {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-top: 1.5rem;
-}
-
-.total {
-    display: flex;
-    justify-content: space-between;
-    font-size: 1.5rem;
-    font-weight: bold;
-}
-
-.price {
-    color: var(--primary-color);
-}
-
-.cart-actions {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-/* Detalhes de cada item do carrinho */
+/* Estilo para cada item do carrinho na lista */
 .cart-item {
     background-color: #f9f9f9;
     border: 1px solid #e0e0e0;
@@ -424,6 +329,7 @@ body {
     flex-direction: column;
     gap: 0.5rem;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 1rem;
 }
 
 .cart-item:hover {
@@ -454,7 +360,7 @@ body {
 
 .item-price {
     font-weight: bold;
-    color: #007bff;
+    color: var(--primary-color);
     font-size: 1.2rem;
 }
 
@@ -478,7 +384,7 @@ body {
     border: none;
     font-size: 1.5rem;
     cursor: pointer;
-    color: #dc3545;
+    color: var(--accent-color);
     transition: transform 0.2s ease, color 0.2s ease;
     opacity: 0.7;
     position: relative;
@@ -507,7 +413,81 @@ body {
     margin-top: 1rem;
 }
 
-/* Modais (pop-ups) */
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.order-item:last-child {
+    border-bottom: none;
+}
+
+.cart-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.price {
+    color: var(--primary-color);
+}
+
+.cart-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.checkout-button {
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.checkout-button:hover {
+    background-color: #5a4abf;
+}
+
+.back-button {
+    background-color: transparent;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.back-button:hover {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+/*
+    ======================================
+    Estilos dos Modais
+    ======================================
+*/
 .modal {
     display: flex;
     justify-content: center;
@@ -530,10 +510,14 @@ body {
 }
 
 .modal-content {
+    background-color: var(--card-background);
     padding: 2.5rem;
     text-align: center;
     width: 90%;
     max-width: 400px;
+    border-radius: 12px;
+    position: relative;
+    box-shadow: var(--shadow-medium);
     transform: scale(0.95);
     transition: transform 0.3s ease;
 }
@@ -548,6 +532,9 @@ body {
     font-weight: bold;
     color: #aaa;
     cursor: pointer;
+    position: absolute;
+    top: 10px;
+    right: 20px;
 }
 
 .payment-option {
@@ -575,29 +562,6 @@ body {
     margin-top: 1rem;
 }
 
-/* Mensagem temporária (Toast) */
-.toast-message {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: var(--text-color);
-    color: #fff;
-    padding: 1rem 2rem;
-    border-radius: 4px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    z-index: 1001;
-}
-
-.toast-message.show {
-    opacity: 1;
-    visibility: visible;
-}
-/* Ajustes finais para compatibilidade mobile */
-
 /*
     ======================================
     Media Queries para Dispositivos Móveis
@@ -606,53 +570,54 @@ body {
     - Estilos aplicados para telas menores (smartphones).
 */
 @media (max-width: 600px) {
-
-    /* Ajustes no espaçamento e alinhamento */
     body {
         padding-top: 0;
     }
 
     .container {
-        padding: var(--spacing-sm);
+        padding: var(--spacing-xs);
     }
     
-    /* Reduz o padding do card principal para economizar espaço */
     .product-selection-card {
         padding-top: var(--spacing-sm);
         padding-bottom: 90px;
     }
 
-    /* Reduz o tamanho da fonte do título principal para caber na tela */
     .product-header-info h1 {
         font-size: 2rem;
     }
 
-    /* Reduz a altura da imagem para não ocupar tanto espaço verticalmente */
     .product-header-image {
         height: 180px;
     }
     
-    /* Reduz a fonte dos títulos de seção */
     .option-group h2 {
         font-size: 1.5rem;
     }
 
-    /* Ajusta o padding dos itens de opção para ficarem mais compactos */
     .option-item {
         padding: 1rem;
     }
 
-    /* Ajusta o tamanho dos inputs de rádio e checkbox */
     .option-radio, 
     .option-checkbox {
         width: 20px;
         height: 20px;
     }
 
-    /* Reduz a fonte dos botões do rodapé */
     .add-to-cart-button,
     .checkout-footer-button {
         font-size: 1rem;
         padding: 0.8rem;
+    }
+
+    /* Ajustes específicos para o carrinho em mobile */
+    .cart-list-container {
+        padding: var(--spacing-xs);
+    }
+    
+    .cart-actions {
+        flex-direction: column;
+        gap: var(--spacing-sm);
     }
 }
