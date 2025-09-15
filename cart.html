@@ -61,6 +61,15 @@
     <div id="toast-message" class="toast-message"></div>
     <div id="payment-options-container"></div>
     <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <div id="cashier-waiting-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 id="cashier-waiting-title">Aguardando Pagamento</h2>
+            <p>Por favor, apresente o seguinte código no caixa para realizar o pagamento:</p>
+            <p class="order-code-display" id="cashier-order-code">#XXXX</p>
+            <p>O seu pedido será enviado para a produção assim que o pagamento for aprovado pelo caixa.</p>
+        </div>
+    </div>
 
     <script src="js/cart.js"></script>
 </body>

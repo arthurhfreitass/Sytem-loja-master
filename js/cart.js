@@ -33,69 +33,69 @@ function showToast(message) {
 // Render carrinho
 // Função auxiliar para criar HTML de um item
 function createCartItemHTML(item, index, className = 'cart-item') {
-    const { name, price, size, toppings = [], extras = [] } = item;
-    const formattedPrice = Number(price).toFixed(2).replace('.', ',');
-    const toppingsText = toppings.length ? toppings.join(', ') : 'Nenhum';
-    const extrasText = extras.length ? extras.map(e => e.name).join(', ') : 'Nenhum';
+    const { name, price, size, toppings = [], extras = [] } = item;
+    const formattedPrice = Number(price).toFixed(2).replace('.', ',');
+    const toppingsText = toppings.length ? toppings.join(', ') : 'Nenhum';
+    const extrasText = extras.length ? extras.map(e => e.name).join(', ') : 'Nenhum';
 
-    const li = document.createElement('li');
-    li.classList.add(className);
-    li.innerHTML = `
-        <div class="item-info">
-            <div class="item-info-text">
-                <span class="item-name">${name}</span>
-                <span class="item-price">R$ ${formattedPrice}</span>
-            </div>
-            <button class="remove-item" data-index="${index}">❌</button>
-        </div>
-        <ul class="item-details">
-            <li><strong>Tamanho:</strong> ${size.name}</li>
-            <li><strong>Complementos:</strong> ${toppingsText}</li>
-            <li><strong>Extras:</strong> ${extrasText}</li>
-        </ul>
-    `;
-    return li;
+    const li = document.createElement('li');
+    li.classList.add(className);
+    li.innerHTML = `
+        <div class="item-info">
+            <div class="item-info-text">
+                <span class="item-name">${name}</span>
+                <span class="item-price">R$ ${formattedPrice}</span>
+            </div>
+            <button class="remove-item" data-index="${index}">❌</button>
+        </div>
+        <ul class="item-details">
+            <li><strong>Tamanho:</strong> ${size.name}</li>
+            <li><strong>Complementos:</strong> ${toppingsText}</li>
+            <li><strong>Extras:</strong> ${extrasText}</li>
+        </ul>
+    `;
+    return li;
 }
 
 // Função para renderizar o carrinho
 function renderCart() {
-    cart = JSON.parse(localStorage.getItem('tempCart')) || [];
-    cartList.innerHTML = '';
-    let total = 0;
+    cart = JSON.parse(localStorage.getItem('tempCart')) || [];
+    cartList.innerHTML = '';
+    let total = 0;
 
-    if (!cart.length) {
-        cartList.innerHTML = '<p class="empty-cart-message">Seu carrinho está vazio.</p>';
-        checkoutButton.disabled = true;
-    } else {
-        checkoutButton.disabled = false;
-        cart.forEach((item, index) => {
-            cartList.appendChild(createCartItemHTML(item, index, 'cart-item'));
-            total += Number(item.price);
-        });
-    }
+    if (!cart.length) {
+        cartList.innerHTML = '<p class="empty-cart-message">Seu carrinho está vazio.</p>';
+        checkoutButton.disabled = true;
+    } else {
+        checkoutButton.disabled = false;
+        cart.forEach((item, index) => {
+            cartList.appendChild(createCartItemHTML(item, index, 'cart-item'));
+            total += Number(item.price);
+        });
+    }
 
-    cartTotalPriceSpan.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    cartTotalPriceSpan.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
 }
 
 // Função para renderizar a lista de revisão
 function renderReviewList() {
-    reviewList.innerHTML = '';
-    let total = 0;
+    reviewList.innerHTML = '';
+    let total = 0;
 
-    cart.forEach(item => {
-        reviewList.appendChild(createCartItemHTML(item, 'order-item'));
-        total += Number(item.price);
-    });
+    cart.forEach(item => {
+        reviewList.appendChild(createCartItemHTML(item, 'order-item'));
+        total += Number(item.price);
+    });
 
-    reviewTotalPriceSpan.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    reviewTotalPriceSpan.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
 }
 
 // Função para remover item
 function removeCartItem(index) {
-    cart.splice(index, 1);
-    localStorage.setItem('tempCart', JSON.stringify(cart));
-    renderCart();
-    showToast("Item removido do carrinho.");
+    cart.splice(index, 1);
+    localStorage.setItem('tempCart', JSON.stringify(cart));
+    renderCart();
+    showToast("Item removvido do carrinho.");
 }
 
 // Código 4 dígitos - Esta função não é mais necessária para o fluxo de pedido.
