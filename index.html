@@ -8,13 +8,15 @@
 </head>
 <body>
 
-    <header class="header">
-        <h1>Monte seu Açaí</h1>
+    <header class="product-header">
+        <img src="https://instadelivery-public.nyc3.cdn.digitaloceanspaces.com/groups/17201092386686c8b655b07.jpeg" alt="Açaí" class="product-header-image">
+        <div class="product-header-info">
+            <h1>Açaí do Terceirão</h1>
+        </div>
     </header>
 
     <main class="container">
         <section class="product-selection-card">
-            <img src="https://instadelivery-public.nyc3.cdn.digitaloceanspaces.com/groups/17201092386686c8b655b07.jpeg" alt="Açaí" class="product-image">
             <p id="product-description" class="product-description"></p>
             
             <div class="options-container">
@@ -36,13 +38,15 @@
             </div>
             
             <div class="sticky-footer">
-                <button id="add-to-cart-button" class="add-to-cart-button">
-                    Adicionar ao Carrinho - <span id="add-to-cart-price">R$ 0,00</span>
-                </button>
-                <a href="cart.html" id="checkout-footer-button" class="checkout-footer-button">
-                    Finalizar Pedido
-                    <span id="cart-item-count" class="cart-item-count">0</span>
-                </a>
+                <div class="container-inner">
+                    <button id="add-to-cart-button" class="add-to-cart-button">
+                        Adicionar ao Carrinho <span id="add-to-cart-price">R$ 0,00</span>
+                    </button>
+                    <a href="cart.html" id="checkout-footer-button" class="checkout-footer-button">
+                        Finalizar Pedido
+                        <span id="cart-item-count" class="cart-item-count">0</span>
+                    </a>
+                </div>
             </div>
         </section>
     </main>

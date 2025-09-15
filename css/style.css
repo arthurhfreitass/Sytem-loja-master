@@ -10,24 +10,27 @@
 
 /* Variáveis CSS para um estilo mais fácil de gerenciar */
 :root {
-    --primary-color: #7A42E4; /* Roxo mais vibrante e moderno */
-    --secondary-color: #38C759; /* Verde para sucesso */
-    --accent-color: #FF5A5F; /* Vermelho para destaque */
-    --text-color: #2D2D2D;
-    --light-text-color: #6D6D6D;
-    --border-color: #E0E0E0;
-    --background-color: #F8F9FA;
-    --card-background: #FFFFFF;
+    /* Cores */
+    --primary-color: #7A42E4;      /* Roxo principal */
+    --secondary-color: #38C759;    /* Verde para ações principais */
+    --accent-color: #FF5A5F;       /* Vermelho para destaque/alerta */
+    --text-color: #2D2D2D;         /* Cor de texto escura */
+    --light-text-color: #6D6D6D;   /* Cor de texto secundária */
+    --border-color: #E0E0E0;       /* Cor de borda suave */
+    --background-color: #F8F9FA;   /* Fundo da página */
+    --card-background: #FFFFFF;    /* Fundo de cartões */
+    
+    /* Sombras */
     --shadow-small: 0px 4px 6px rgba(0, 0, 0, 0.08);
     --shadow-medium: 0px 8px 12px rgba(0, 0, 0, 0.1);
     
-    /* Variáveis para espaçamento */
+    /* Espaçamento */
     --spacing-xs: 0.5rem;
     --spacing-sm: 1rem;
     --spacing-md: 1.5rem;
     --spacing-lg: 2rem;
 }
-/* Estilos Gerais e Estrutura Principal */
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     margin: 0;
@@ -50,52 +53,99 @@ body {
 }
 
 .container {
-    max-width: 650px; /* Aumentamos um pouco para dar mais espaço */
+    max-width: 650px;
     width: 100%;
     padding: var(--spacing-sm);
     flex-grow: 1;
 }
-
-/* Cartões e Componentes de Seleção de Produto */
-.product-selection-card,
-.cart-list-container,
-.modal-content {
+/*
+    ======================================
+    Melhoria da Imagem e Layout
+    ======================================
+    
+    - Ajustes no espaçamento e alinhamento para um visual mais profissional.
+*/
+.product-selection-card {
+    /* Remove a imagem de dentro do card, pois agora ela está no novo cabeçalho */
+    padding-top: var(--spacing-md);
     background-color: var(--card-background);
-    border-radius: 12px; /* Aumentamos o raio da borda para um visual mais suave */
+    border-radius: 12px;
     box-shadow: var(--shadow-medium);
     margin-bottom: var(--spacing-md);
-    padding: var(--spacing-md);
+    padding-bottom: 90px;
+}
+.product-header {
+    width: 100%;
+    max-width: 650px;
+    position: relative;
+    box-shadow: var(--shadow-medium);
 }
 
-.product-selection-card {
-    padding-bottom: 90px; /* Aumentei o padding para o footer não cobrir o conteúdo */
+.product-header-image {
+    width: 100%;
+    height: 250px; /* Ajuste a altura conforme preferir */
+    object-fit: cover; /* Garante que a imagem cubra o espaço sem distorcer */
+    display: block;
 }
+
+.product-header-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    padding: var(--spacing-md);
+    padding-top: var(--spacing-lg);
+    color: #fff;
+}
+
+.product-header-info h1 {
+    font-size: 2.5rem;
+    margin: 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
 
 .product-image {
+    /* Garante que a imagem ocupe a largura total do card */
     width: 100%;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
+    /* Adiciona margem para separar a imagem do conteúdo abaixo */
+    margin-bottom: var(--spacing-md);
 }
 
 .product-description {
-    padding: 0 1.5rem;
+    /* Ajusta o padding para um espaçamento mais uniforme */
+    padding: 0 var(--spacing-md);
     color: var(--light-text-color);
     line-height: 1.5;
 }
 
+/* Container de todas as opções (tamanho, inclusos, extras) */
 .options-container {
-    padding: 1.5rem;
+    /* Centraliza o container de opções */
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
 }
 
 .option-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--spacing-lg);
 }
 
+/*
+    ======================================
+    Melhoria das Opções de Seleção
+    ======================================
+    
+    - Otimiza o design dos botões de opção para torná-los mais
+      visíveis e profissionais.
+*/
 .option-group h2 {
-    font-size: 1.5rem;
-    border-bottom: 2px solid #ddd;
-    padding-bottom: 0.5rem;
-    margin-bottom: 1rem;
+    font-size: 1.75rem; /* Títulos maiores e mais impactantes */
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.75rem;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600; /* Deixa o título um pouco mais leve */
 }
 
 .option-list {
@@ -104,13 +154,14 @@ body {
     gap: 10px;
 }
 
+/* Item de opção individual */
 .option-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--spacing-sm) var(--spacing-md);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
+    padding: 1.2rem var(--spacing-md); /* Aumenta o padding para mais área de clique */
+    border: 2px solid var(--border-color); /* Borda mais grossa para destacar */
+    border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
 }
@@ -121,9 +172,10 @@ body {
     box-shadow: var(--shadow-small);
 }
 
-.option-item.selected { /* Nova classe para destacar a opção selecionada */
+.option-item.selected {
+    /* Destaca a opção selecionada de forma mais clara */
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(122, 66, 228, 0.4);
+    box-shadow: 0 0 0 3px rgba(122, 66, 228, 0.4);
 }
 
 .option-item.disabled {
@@ -135,55 +187,71 @@ body {
     flex-grow: 1;
 }
 
+/*
+    Ajuste no tamanho do texto dos preços
+*/
 .option-price {
-    color: var(--primary-color);
+    font-size: 1.1rem; /* Aumenta a fonte para melhor legibilidade */
     font-weight: bold;
+    color: var(--primary-color);
 }
 
-/* Botões de rádio e checkbox */
-.option-radio, .option-checkbox {
+/*
+    Ajuste nos inputs de Rádio e Checkbox para melhor visualização
+*/
+.option-radio, 
+.option-checkbox {
     -webkit-appearance: none;
     appearance: none;
-    width: 20px;
-    height: 20px;
+    width: 24px; /* Aumenta o tamanho do input */
+    height: 24px;
     cursor: pointer;
-    margin-right: 15px;
+    margin-right: var(--spacing-sm);
+    transition: all 0.2s ease-in-out;
 }
 
 .option-radio {
     border-radius: 50%;
-    border: 2px solid var(--border-color);
+    border: 3px solid var(--border-color); /* Borda mais grossa */
 }
 
 .option-checkbox {
     border-radius: 4px;
-    border: 2px solid var(--border-color);
+    border: 3px solid var(--border-color); /* Borda mais grossa */
 }
 
-.option-radio:checked, .option-checkbox:checked {
+.option-radio:checked, 
+.option-checkbox:checked {
     border-color: var(--primary-color);
     background-color: var(--primary-color);
     box-shadow: 0 0 0 4px rgba(122, 66, 228, 0.2);
 }
 
-
 .small-text {
     font-size: 0.8em;
-    color: #888;
+    color: var(--light-text-color);
     margin-top: -0.5rem;
-    margin-bottom: 1rem;
+    margin-bottom: var(--spacing-sm);
 }
 
-/* Rodapé e Botões de Ação */
+/*
+    ======================================
+    Rodapé Fixo (Sticky Footer)
+    ======================================
+    
+    - Usando 'position: fixed' para garantir que o rodapé esteja sempre visível
+      na parte inferior da tela, resolvendo o problema de sobreposição.
+*/
 .sticky-footer {
-    position: sticky; /* Muda de fixed para sticky para um comportamento mais natural em alguns casos */
+    position: fixed;
     bottom: 0;
+    left: 0;
+    right: 0;
     width: 100%;
-    max-width: 650px;
     display: flex;
-    flex-direction: column;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-sm);
+    justify-content: center; /* Centraliza o conteúdo horizontalmente */
+    align-items: center;
+    padding: var(--spacing-sm); /* Ajusta o padding para ser uniforme */
     background-color: var(--card-background);
     box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
     border-top-left-radius: 16px;
@@ -191,127 +259,60 @@ body {
     z-index: 999;
 }
 
-/* Estilo geral dos botões */
+.sticky-footer .container-inner {
+    width: 100%;
+    max-width: 650px; /* Garante que os botões não fiquem grandes demais em telas largas */
+    padding: 0 var(--spacing-sm); /* Adiciona o padding horizontal */
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+/*
+    ======================================
+    Botões de Ação
+    ======================================
+    
+    - Estilos unificados para os botões do rodapé.
+*/
 .add-to-cart-button,
 .checkout-footer-button {
     border: none;
-    border-radius: 12px; /* Mantém a borda arredondada para um visual moderno */
+    border-radius: 12px;
     font-size: 1.1rem;
     font-weight: bold;
     cursor: pointer;
-    width: 90%;
-    max-width: 500px;
     text-align: center;
     color: #fff;
-    padding: 1rem 1rem;
+    padding: 1rem;
     transition: all 0.25s ease-in-out;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.12); /* Sombra suave para profundidade */
-}
-
-/* Botão de adicionar */
-.add-to-cart-button {
-    background-color: var(--secondary-color); /* Usa a cor verde sólida */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    text-decoration: none;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-}
-
-.add-to-cart-button:hover {
-    background-color: #218838; /* Cor um pouco mais escura no hover para feedback */
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.18);
-}
-
-/* Botão de finalizar pedido */
-.checkout-footer-button {
-    background-color: var(--primary-color); /* Usa a cor roxa sólida */
     justify-content: center;
 }
 
-.checkout-footer-button:hover {
-    background-color: #5a4abf; /* Cor um pouco mais escura no hover */
+.add-to-cart-button {
+    background-color: var(--secondary-color);
+    justify-content: space-between;
+}
+
+.add-to-cart-button:hover {
+    background-color: #218838;
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0,0,0,0.18);
 }
 
-@keyframes pulse {
-    0% { transform: translateY(-50%) scale(1); }
-    50% { transform: translateY(-50%) scale(1.05); }
-    100% { transform: translateY(-50%) scale(1); }
+.checkout-footer-button {
+    background-color: var(--primary-color);
 }
 
-/* Badge de quantidade */
-.checkout-footer-button .badge {
-    background-color: #ff4d4d;
-    color: #fff;
-    font-size: 0.75rem;
-    font-weight: bold;
-    border-radius: 50%;
-    padding: 0.3rem 0.6rem;
-    position: absolute;
-    right: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-    animation: pulse 1.5s infinite;
-}
-
-/* Animação chamando atenção */
-@keyframes pulse {
-    0% { transform: translateY(-50%) scale(1); opacity: 1; }
-    50% { transform: translateY(-50%) scale(1.2); opacity: 0.8; }
-    100% { transform: translateY(-50%) scale(1); opacity: 1; }
-}
-
-
-
-/* --- Botões checkout e voltar --- */
-.checkout-button,
-.back-button {
-    padding: 1rem;
-    flex-grow: 1;
-    font-size: 1rem;
-
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    color: #fff;
-    cursor: pointer;
-    min-height: 48px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-    transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
-    -webkit-tap-highlight-color: transparent;
-}
-
-/* Botão continuar compra (cinza) */
-.back-button {
-    background: linear-gradient(135deg, #6c757d, #5a6268);
-}
-
-.back-button:hover {
-    background: linear-gradient(135deg, #5a6268, #4e555b);
+.checkout-footer-button:hover {
+    background-color: #5a4abf;
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.18);
 }
-
-/* Botão checkout (mesmo estilo do roxo) */
-.checkout-button {
-    background: linear-gradient(135deg, #6A5ACD, #7b68ee);
-}
-
-.checkout-button:hover {
-    background: linear-gradient(135deg, #5a4abf, #6a5adf);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-}
-
-/* Estado active */
-.checkout-button:active,
-.back-button:active {
-    transform: translateY(0);
-    opacity: 0.95;
-}
-
 /* Contador de Itens do Carrinho */
 .cart-item-count {
     background-color: var(--accent-color);
@@ -321,13 +322,24 @@ body {
     font-size: 0.8rem;
     font-weight: bold;
     margin-left: 8px;
-    display: none;
-}
-
-.cart-item-count:not(:empty) {
-    display: flex;
+    display: inline-flex;
     justify-content: center;
     align-items: center;
+}
+
+/*
+    ======================================
+    Animações e Outros Estilos
+    ======================================
+*/
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.cart-item-count.has-items {
+    animation: pulse 1.5s infinite;
 }
 
 /* Estilos do Carrinho de Compras */
@@ -586,3 +598,61 @@ body {
 }
 /* Ajustes finais para compatibilidade mobile */
 
+/*
+    ======================================
+    Media Queries para Dispositivos Móveis
+    ======================================
+    
+    - Estilos aplicados para telas menores (smartphones).
+*/
+@media (max-width: 600px) {
+
+    /* Ajustes no espaçamento e alinhamento */
+    body {
+        padding-top: 0;
+    }
+
+    .container {
+        padding: var(--spacing-sm);
+    }
+    
+    /* Reduz o padding do card principal para economizar espaço */
+    .product-selection-card {
+        padding-top: var(--spacing-sm);
+        padding-bottom: 90px;
+    }
+
+    /* Reduz o tamanho da fonte do título principal para caber na tela */
+    .product-header-info h1 {
+        font-size: 2rem;
+    }
+
+    /* Reduz a altura da imagem para não ocupar tanto espaço verticalmente */
+    .product-header-image {
+        height: 180px;
+    }
+    
+    /* Reduz a fonte dos títulos de seção */
+    .option-group h2 {
+        font-size: 1.5rem;
+    }
+
+    /* Ajusta o padding dos itens de opção para ficarem mais compactos */
+    .option-item {
+        padding: 1rem;
+    }
+
+    /* Ajusta o tamanho dos inputs de rádio e checkbox */
+    .option-radio, 
+    .option-checkbox {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* Reduz a fonte dos botões do rodapé */
+    .add-to-cart-button,
+    .checkout-footer-button {
+        font-size: 1rem;
+        padding: 0.8rem;
+    }
+}
