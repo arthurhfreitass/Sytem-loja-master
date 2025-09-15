@@ -1,181 +1,226 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Produção do Pedido</title>
-    <link rel="stylesheet" href="css/style.css">
-    <style>
-        .production-container {
-            max-width: 600px;
-            width: 100%;
-            padding: 1rem;
-            flex-grow: 1;
-        }
-
-        .production-card {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            padding: 1.5rem;
-        }
-
-        .production-header {
-            text-align: center;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .production-header h2 {
-            margin: 0;
-            font-size: 2rem;
-            color: #28a745;
-        }
-        
-        .production-status {
-            font-size: 1.2rem;
-            color: #dc3545;
-            font-weight: bold;
-        }
-
-        .production-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .production-item {
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-        }
-
-        .production-details {
-            font-size: 1rem;
-            color: #666;
-            margin-left: 1.5rem;
-        }
-
-        .production-actions {
-            margin-top: 2rem;
-        }
-        
-        .finalize-button {
-            width: 100%;
-            padding: 1rem;
-            background-color: #dc3545;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            font-size: 1.2rem;
-            cursor: pointer;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Produção do Pedido</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .production-container {
+      max-width: 700px;
+      margin: auto;
+      padding: 1rem;
+    }
+    .production-card {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .production-header {
+      text-align: center;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 1rem;
+      margin-bottom: 1rem;
+    }
+    .production-header h2 {
+      margin: 0;
+      font-size: 2rem;
+      color: #28a745;
+    }
+    .production-status {
+      font-size: 1.2rem;
+      color: #dc3545;
+      font-weight: bold;
+    }
+    .steps-list {
+      list-style: none;
+      padding: 0;
+    }
+    .step-item {
+      margin-bottom: 1rem;
+      padding: 1rem;
+      background: #f9f9f9;
+      border-left: 6px solid #7c3aed;
+      border-radius: 6px;
+    }
+    .step-title {
+      font-weight: bold;
+      margin-bottom: 0.3rem;
+    }
+    .finalize-button {
+      width: 100%;
+      padding: 1rem;
+      background-color: #dc3545;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      margin-top: 1.5rem;
+    }
+  </style>
 </head>
 <body>
+  <header class="header">
+    <h1>Produção do Pedido</h1>
+  </header>
 
-    <header class="header">
-        <h1>Produção do Pedido</h1>
-    </header>
+  <main class="production-container">
+    <section id="production-details" class="production-card"></section>
+  </main>
 
-    <main class="production-container">
-        <section id="production-details" class="production-card"></section>
-    </main>
+  <script>
+    const API_BASE = "https://sytem-loja-master.onrender.com";
+    const productionDetails = document.getElementById('production-details');
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const productionDetails = document.getElementById('production-details');
+    function getOrderIdFromUrl() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('id');
+    }
 
-            function getOrderIdFromUrl() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const orderId = urlParams.get('id');
-                // CORRIGIDO: Retorna o ID convertido para número
-                return orderId ? parseInt(orderId) : null;
-            }
+    async function fetchOrder(orderId) {
+      try {
+        const response = await fetch(`${API_BASE}/orders/${orderId}`);
+        if (!response.ok) throw new Error("Erro ao buscar pedido");
+        return await response.json();
+      } catch (err) {
+        console.error("❌ Erro:", err);
+        productionDetails.innerHTML = "<p>Erro ao carregar pedido.</p>";
+      }
+    }
 
-            function loadOrderForProduction() {
-                const orderId = getOrderIdFromUrl();
-                const orders = JSON.parse(localStorage.getItem('orders')) || [];
-                // CORRIGIDO: A comparação agora funciona porque ambos são números
-                const order = orders.find(o => o.id === orderId);
-
-                if (order) {
-                    // CORRIGIDO: Apenas atualiza o status se o pedido não estiver em produção
-                    if (order.status !== 'em_preparacao') {
-                        order.status = 'em_preparacao';
-                        localStorage.setItem('orders', JSON.stringify(orders));
-                    }
-                    renderProductionDetails(order);
-                } else {
-                    productionDetails.innerHTML = '<p>Pedido não encontrado ou já finalizado.</p>';
-                }
-            }
-
-            function renderProductionDetails(order) {
-                let itemsHtml = '';
-                if (order.items && Array.isArray(order.items)) {
-                    order.items.forEach(item => {
-                        const sizeName = item.size && item.size.name ? item.size.name : 'N/A';
-                        // CORRIGIDO: Acessa 'toppings' em vez de 'included'
-                        const toppingsText = item.toppings && item.toppings.length > 0 ? item.toppings.join(', ') : 'Nenhum';
-                        // CORRIGIDO: Acessa 'extras' corretamente
-                        const extrasText = item.extras && item.extras.length > 0 ? item.extras.map(e => e.name).join(', ') : 'Nenhum';
-
-                        itemsHtml += `
-                            <li class="production-item">
-                                <strong>${item.name}</strong>
-                                <p class="production-details">Tamanho: ${sizeName}</p>
-                                <p class="production-details">Complementos: ${toppingsText}</p>
-                                <p class="production-details">Extras: ${extrasText}</p>
-                            </li>
-                        `;
-                    });
-                }
-
-                productionDetails.innerHTML = `
-                    <div class="production-header">
-                        <h2>Pedido #${order.id}</h2>
-                        <span class="production-status">Em Preparação</span>
-                    </div>
-                    <ul class="production-list">${itemsHtml}</ul>
-                    <div class="production-actions">
-                        <button id="finalize-order-button" class="finalize-button">Finalizar Pedido</button>
-                    </div>
-                `;
-
-                // Adiciona o evento de clique para finalizar o pedido
-                document.getElementById('finalize-order-button').addEventListener('click', () => {
-                    finalizeOrder(order.id);
-                });
-            }
-
-            function finalizeOrder(orderId) {
-                const orders = JSON.parse(localStorage.getItem('orders')) || [];
-                // CORRIGIDO: A busca usa o ID numérico
-                const orderToFinalize = orders.find(o => o.id === parseInt(orderId));
-
-                if (orderToFinalize) {
-                    orderToFinalize.status = 'concluido'; // Use 'concluido' para consistência
-                    localStorage.setItem('orders', JSON.stringify(orders));
-                    alert('Pedido finalizado com sucesso!');
-                    window.location.href = 'kitchen.html';
-                }
-            }
-
-            // Impede o utilizador de sair da página sem finalizar o pedido
-            window.addEventListener('beforeunload', (e) => {
-                const orderId = getOrderIdFromUrl();
-                const orders = JSON.parse(localStorage.getItem('orders')) || [];
-                const orderStatus = orders.find(o => o.id === orderId)?.status;
-
-                if (orderStatus === 'em_preparacao') {
-                    e.preventDefault();
-                    e.returnValue = '';
-                }
-            });
-
-            loadOrderForProduction();
+    async function updateOrderStatus(orderId, newStatus) {
+      try {
+        await fetch(`${API_BASE}/orders/${orderId}/status`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: newStatus })
         });
-    </script>
+      } catch (err) {
+        console.error("❌ Erro ao atualizar status:", err);
+      }
+    }
+
+    function gerarSequenciaPreparo(order) {
+      const item = order.items[0];
+      const tamanho = item?.size?.name ?? (typeof item?.size === "string" ? item.size : "500ml");
+
+      // Quantidades por copo
+      const quantidades = {
+        "300ml": { base: 100, camada: 100 },
+        "500ml": { base: 150, camada: 150 },
+        "700ml": { base: 200, camada: 200 }
+      };
+      const q = quantidades[tamanho] || quantidades["500ml"];
+
+      const steps = [];
+
+      // Base inicial
+      steps.push({
+        etapa: "Base inicial",
+        nome: "Polpa de Açaí",
+        qtd: `${q.base}ml`,
+        instrucao: "Coloque no fundo do copo"
+      });
+
+      // Camada 1 - toppings
+      if (Array.isArray(item.toppings) && item.toppings.length > 0) {
+        item.toppings.forEach(t => {
+          steps.push({
+            etapa: "1ª Camada",
+            nome: typeof t === "string" ? t : (t?.name ?? t),
+            qtd: "a gosto",
+            instrucao: "Distribua sobre a base"
+          });
+        });
+      }
+
+      // Segunda camada de açaí
+      steps.push({
+        etapa: "2ª Camada",
+        nome: "Polpa de Açaí",
+        qtd: `${q.camada}ml`,
+        instrucao: "Segunda camada de açaí"
+      });
+
+      // Camada 2 - toppings novamente
+      if (Array.isArray(item.toppings) && item.toppings.length > 1) {
+        item.toppings.forEach(t => {
+          steps.push({
+            etapa: "2ª Camada",
+            nome: typeof t === "string" ? t : (t?.name ?? t),
+            qtd: "a gosto",
+            instrucao: "Corte/distribua sobre o açaí"
+          });
+        });
+      }
+
+      // Extras como cobertura
+      if (Array.isArray(item.extras) && item.extras.length > 0) {
+        item.extras.forEach(e => {
+          steps.push({
+            etapa: "Cobertura",
+            nome: typeof e === "string" ? e : (e?.name ?? e),
+            qtd: "a gosto",
+            instrucao: "Finalize por cima"
+          });
+        });
+      }
+
+      return steps;
+    }
+
+    function renderProductionDetails(order) {
+      const steps = gerarSequenciaPreparo(order);
+
+      let stepsHtml = "";
+      steps.forEach((s, i) => {
+        stepsHtml += `
+          <li class="step-item">
+            <div class="step-title">${i + 1}. ${s.etapa} → <strong>${s.nome}</strong> (${s.qtd})</div>
+            <div class="step-instrucao">${s.instrucao}</div>
+          </li>
+        `;
+      });
+
+      productionDetails.innerHTML = `
+        <div class="production-header">
+          <h2>Pedido #${order.id}</h2>
+          <span class="production-status">${order.status.toUpperCase()}</span>
+        </div>
+        <ul class="steps-list">${stepsHtml}</ul>
+        <button id="finalize-order-button" class="finalize-button">Finalizar Pedido</button>
+      `;
+
+      document.getElementById("finalize-order-button")
+        .addEventListener("click", async () => {
+          await updateOrderStatus(order.id, "concluido");
+          alert("Pedido finalizado com sucesso!");
+          window.location.href = "kitchen.html";
+        });
+    }
+
+    async function loadOrderForProduction() {
+      const orderId = getOrderIdFromUrl();
+      if (!orderId) {
+        productionDetails.innerHTML = "<p>ID do pedido não informado.</p>";
+        return;
+      }
+
+      const order = await fetchOrder(orderId);
+      if (!order) return;
+
+      if (order.status !== "em_preparacao") {
+        await updateOrderStatus(order.id, "em_preparacao");
+        order.status = "em_preparacao";
+      }
+
+      renderProductionDetails(order);
+    }
+
+    document.addEventListener("DOMContentLoaded", loadOrderForProduction);
+  </script>
 </body>
 </html>

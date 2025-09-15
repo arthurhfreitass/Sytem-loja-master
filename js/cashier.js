@@ -38,7 +38,7 @@ function updateFinances() {
 
     const totalRevenue = orders
         .filter(order => order.status === 'aprovado' || order.status === 'em_preparacao' || order.status === 'concluido')
-        .reduce((sum, order) => sum + order.total, 0);
+        .reduce((sum, order) => sum + (Number(order.total) || 0), 0);
 
     const totalExpenses = expenses.reduce((sum, expense) => sum + expense.value, 0);
     const balance = totalRevenue - totalExpenses;
@@ -163,7 +163,6 @@ async function renderCashierOrders() {
     const orders = await fetchOrdersFromAPI();
     ordersListContainer.innerHTML = '';
     
-    // CORREÇÃO: Altera o filtro para buscar pedidos com status 'pendente_caixa'
     const pendingOrders = orders.filter(order => order.status === 'pendente_caixa');
 
     if (pendingOrders.length === 0) {
@@ -178,12 +177,18 @@ async function renderCashierOrders() {
         orderCard.classList.add('order-card');
         
         let itemsHtml = '';
-        if (order.items && Array.isArray(order.items)) {
+        if (Array.isArray(order.items)) {
             order.items.forEach(item => {
-                const sizeName = item.size && item.size.name ? item.size.name : 'N/A';
-                // CORREÇÃO: Mapeia toppings e extras para pegar apenas os nomes
-                const toppingsText = item.toppings && item.toppings.length > 0 ? item.toppings.map(t => t.name).join(', ') : 'Nenhum';
-                const extrasText = item.extras && item.extras.length > 0 ? item.extras.map(e => e.name).join(', ') : 'Nenhum';
+                // Tratamento seguro para diferentes formatos
+                const sizeName = item?.size?.name ?? (typeof item?.size === 'string' ? item.size : 'N/A');
+
+                const toppingsText = Array.isArray(item?.toppings) && item.toppings.length > 0
+                    ? item.toppings.map(t => (typeof t === 'string' ? t : (t?.name ?? t))).filter(Boolean).join(', ')
+                    : 'Nenhum';
+
+                const extrasText = Array.isArray(item?.extras) && item.extras.length > 0
+                    ? item.extras.map(e => (typeof e === 'string' ? e : (e?.name ?? e))).filter(Boolean).join(', ')
+                    : 'Nenhum';
 
                 itemsHtml += `
                     <li class="order-item-cashier">
@@ -198,14 +203,17 @@ async function renderCashierOrders() {
             });
         }
 
+        const totalNum = Number(order.total) || 0;
+        const statusDisplay = order.status ? order.status.toUpperCase() : 'PENDENTE';
+
         orderCard.innerHTML = `
             <div class="order-header">
                 <h2>Pedido #${order.id}</h2>
-                <span class="order-status">PENDENTE</span>
+                <span class="order-status">${statusDisplay}</span>
             </div>
             <ul class="order-list-items">${itemsHtml}</ul>
-            <p>Total: R$ ${order.total.toFixed(2)}</p>
-            <p>Pagamento: ${order.payment}</p>
+            <p>Total: R$ ${totalNum.toFixed(2)}</p>
+            <p>Pagamento: ${order.payment || '—'}</p>
             <div class="order-actions">
                 <button class="approve-button" data-id="${order.id}">Aprovar e Enviar para Cozinha</button>
             </div>
@@ -227,6 +235,7 @@ async function updateOrderStatus(orderId, newStatus) {
             throw new Error('Erro ao atualizar status do pedido.');
         }
         
+        // Recarrega a lista para refletir alterações
         renderCashierOrders();
     } catch (error) {
         console.error('❌ Erro ao atualizar status:', error);
@@ -260,6 +269,8 @@ navButtons.forEach(button => {
 ordersListContainer.addEventListener('click', (e) => {
     if (e.target.classList.contains('approve-button')) {
         const orderId = e.target.dataset.id;
+        // Quando o caixa aprova, o pedido passa para 'aprovado'
+        // (o cliente que está aguardando em cart.js procura exatamente por 'aprovado')
         updateOrderStatus(orderId, 'aprovado');
     }
 });
