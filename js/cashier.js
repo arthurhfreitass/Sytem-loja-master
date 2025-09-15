@@ -13,6 +13,10 @@ const expenseForm = document.getElementById('expense-form');
 const expenseHistoryContainer = document.getElementById('expense-history-container');
 const noExpensesMessage = document.getElementById('no-expenses-message');
 
+// Referências para os elementos de gráficos
+const balanceChartCanvas = document.getElementById('balanceChart');
+const goalChartCanvas = document.getElementById('goalChart');
+
 // Variáveis para os gráficos (referências)
 let balanceChart;
 let goalChart;
@@ -32,81 +36,71 @@ async function fetchOrdersFromAPI() {
     }
 }
 
-function updateFinances() {
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
-    const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
-
-    const totalRevenue = orders
-        .filter(order => order.status === 'aprovado' || order.status === 'em_preparacao' || order.status === 'concluido')
-        .reduce((sum, order) => sum + (Number(order.total) || 0), 0);
-
-    const totalExpenses = expenses.reduce((sum, expense) => sum + expense.value, 0);
-    const balance = totalRevenue - totalExpenses;
-    const revenueDividedBy13 = totalRevenue / 13;
-
-    totalRevenueDisplay.textContent = `R$ ${totalRevenue.toFixed(2)}`;
-    totalExpensesDisplay.textContent = `R$ ${totalExpenses.toFixed(2)}`;
-    balanceDisplay.textContent = `R$ ${balance.toFixed(2)}`;
-    revenueDividedDisplay.textContent = `R$ ${revenueDividedBy13.toFixed(2)}`;
-
-    renderCharts(totalRevenue, totalExpenses, balance);
-    renderExpensesHistory();
-}
-
-function renderCharts(revenue, expenses, balance) {
-    const ctx1 = document.getElementById('balanceChart').getContext('2d');
-    const ctx2 = document.getElementById('goalChart').getContext('2d');
-
+// NOVO: Função para renderizar os gráficos
+function renderCharts(totalRevenue, totalExpenses, balance) {
     if (balanceChart) balanceChart.destroy();
     if (goalChart) goalChart.destroy();
 
-    balanceChart = new Chart(ctx1, {
+    balanceChart = new Chart(balanceChartCanvas, {
         type: 'bar',
         data: {
-            labels: ['Arrecadado', 'Gastos'],
+            labels: ['Receita', 'Despesas', 'Saldo'],
             datasets: [{
-                label: 'Valores (R$)',
-                data: [revenue, expenses],
-                backgroundColor: ['rgba(40, 167, 69, 0.6)', 'rgba(220, 53, 69, 0.6)'],
-                borderColor: ['#28a745', '#dc3545'],
+                label: 'Valores Financeiros',
+                data: [totalRevenue, totalExpenses, balance],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(255, 99, 132, 0.6)',
+                    'rgba(54, 162, 235, 0.6)'
+                ],
+                borderColor: [
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)'
+                ],
                 borderWidth: 1
             }]
         },
         options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            },
             responsive: true,
-            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true }
+            }
         }
     });
 
-    const goal = 1000;
-    const missingToGoal = Math.max(0, goal - balance);
+    const profitGoal = 500;
+    const remaining = Math.max(0, profitGoal - totalRevenue);
 
-    goalChart = new Chart(ctx2, {
+    goalChart = new Chart(goalChartCanvas, {
         type: 'doughnut',
         data: {
-            labels: ['Meta Alcançada', 'Falta para a Meta'],
+            labels: ['Arrecadado', 'Falta para a Meta'],
             datasets: [{
-                data: [balance, missingToGoal],
-                backgroundColor: ['rgba(0, 123, 255, 0.8)', 'rgba(255, 193, 7, 0.8)'],
-                hoverBackgroundColor: ['#007bff', '#ffc107']
+                label: 'Progresso da Meta',
+                data: [totalRevenue, remaining],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(201, 203, 207, 0.6)'
+                ],
+                borderColor: [
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(201, 203, 207, 1)'
+                ],
+                borderWidth: 1
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
         }
     });
 }
 
-function renderExpensesHistory() {
+// NOVO: Função para renderizar o histórico de despesas
+function renderExpenseHistory() {
     const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
     expenseHistoryContainer.innerHTML = '';
-
+    
     if (expenses.length === 0) {
         noExpensesMessage.style.display = 'block';
         return;
@@ -114,51 +108,68 @@ function renderExpensesHistory() {
 
     noExpensesMessage.style.display = 'none';
 
-    const table = document.createElement('table');
-    table.innerHTML = `
-        <thead>
-            <tr>
-                <th>Descrição</th>
-                <th class="text-right">Valor</th>
-                <th class="text-right">Data</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    `;
-    const tbody = table.querySelector('tbody');
-
-    expenses.forEach(expense => {
-        const row = document.createElement('tr');
-        const formattedDate = new Date(expense.date).toLocaleDateString('pt-BR');
-        row.innerHTML = `
-            <td>${expense.description}</td>
-            <td class="text-right expense-value-cell">- R$ ${expense.value.toFixed(2)}</td>
-            <td class="text-right">${formattedDate}</td>
+    expenses.forEach((expense) => {
+        const expenseItem = document.createElement('div');
+        expenseItem.classList.add('expense-item');
+        expenseItem.innerHTML = `
+            <span>${expense.description}</span>
+            <span class="expense-amount">- R$ ${expense.amount.toFixed(2)}</span>
         `;
-        tbody.appendChild(row);
+        expenseHistoryContainer.appendChild(expenseItem);
     });
-
-    expenseHistoryContainer.appendChild(table);
 }
 
-function handleExpense(e) {
-    e.preventDefault();
-    const description = document.getElementById('expense-description').value;
-    const value = parseFloat(document.getElementById('expense-value').value);
+// ATUALIZADO: Agora busca os pedidos da API e chama a função de gráficos
+async function updateFinances() {
+    const allOrders = await fetchOrdersFromAPI();
+    const approvedOrders = allOrders.filter(order => order.status === 'aprovado' || order.status === 'pago');
+    const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
 
-    if (description && value) {
+    const totalRevenue = approvedOrders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
+    const totalExpenses = expenses.reduce((sum, expense) => sum + (Number(expense.amount) || 0), 0);
+    const balance = totalRevenue - totalExpenses;
+
+    totalRevenueDisplay.textContent = `R$ ${totalRevenue.toFixed(2)}`;
+    totalExpensesDisplay.textContent = `R$ ${totalExpenses.toFixed(2)}`;
+    balanceDisplay.textContent = `R$ ${balance.toFixed(2)}`;
+
+    renderExpenseHistory();
+    renderCharts(totalRevenue, totalExpenses, balance);
+}
+
+// NOVO: Função para adicionar despesa
+// cashier.js
+
+// ... (código existente)
+
+// NOVO: Função para adicionar despesa
+function addExpense(e) {
+    const description = document.getElementById('expense-description').value;
+    // CORRIGIDO: Referência do ID 'expense-value' para 'expense-amount'
+    const amount = parseFloat(document.getElementById('expense-value').value);
+
+    if (description && amount > 0) {
+        const newExpense = {
+            description,
+            amount,
+            date: new Date().toISOString()
+        };
+
         const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
-        expenses.push({ description, value, date: new Date().toISOString() });
+        expenses.push(newExpense);
         localStorage.setItem('expenses', JSON.stringify(expenses));
-        
-        document.getElementById('expense-form').reset();
+
+        e.target.reset();
         updateFinances();
-        alert('Gasto registrado com sucesso!');
     } else {
-        alert('Por favor, preencha todos os campos do gasto.');
+        alert('Por favor, preencha a descrição e o valor da despesa.');
     }
 }
 
+// ... (restante do código)
+
+
+// Renderiza os pedidos para o painel do caixa.
 async function renderCashierOrders() {
     const orders = await fetchOrdersFromAPI();
     ordersListContainer.innerHTML = '';
@@ -173,30 +184,29 @@ async function renderCashierOrders() {
     noOrdersMessage.style.display = 'none';
 
     pendingOrders.forEach(order => {
-        const orderCard = document.createElement('div');
-        orderCard.classList.add('order-card');
-        
         let itemsHtml = '';
         if (Array.isArray(order.items)) {
             order.items.forEach(item => {
-                // Tratamento seguro para diferentes formatos
                 const sizeName = item?.size?.name ?? (typeof item?.size === 'string' ? item.size : 'N/A');
-
                 const toppingsText = Array.isArray(item?.toppings) && item.toppings.length > 0
-                    ? item.toppings.map(t => (typeof t === 'string' ? t : (t?.name ?? t))).filter(Boolean).join(', ')
+                    ? item.toppings.join(', ')
                     : 'Nenhum';
 
-                const extrasText = Array.isArray(item?.extras) && item.extras.length > 0
-                    ? item.extras.map(e => (typeof e === 'string' ? e : (e?.name ?? e))).filter(Boolean).join(', ')
+                const filteredExtras = Array.isArray(item?.extras)
+                    ? item.extras.filter(e => e && (typeof e === "string" || e.name))
+                    : [];
+
+                const extrasText = filteredExtras.length > 0
+                    ? filteredExtras.map(e => typeof e === "string" ? e : e.name).join(', ')
                     : 'Nenhum';
 
                 itemsHtml += `
                     <li class="order-item-cashier">
-                        <span class="item-name">${item.name}</span>
                         <p class="details">
-                            Tamanho: ${sizeName} | 
-                            Complementos: ${toppingsText} | 
-                            Extras: ${extrasText}
+                            <b>${item.name}</b>
+                            <p class="item-size"><b>Tamanho:</b> ${sizeName}</p>
+                            <p class="item-toppings"><b>Inclusos:</b> ${toppingsText}</p>
+                            <p class="item-extras"><b>Extras:</b> ${extrasText}</p>
                         </p>
                     </li>
                 `;
@@ -206,6 +216,8 @@ async function renderCashierOrders() {
         const totalNum = Number(order.total) || 0;
         const statusDisplay = order.status ? order.status.toUpperCase() : 'PENDENTE';
 
+        const orderCard = document.createElement('div');
+        orderCard.classList.add('order-card');
         orderCard.innerHTML = `
             <div class="order-header">
                 <h2>Pedido #${order.id}</h2>
@@ -230,19 +242,18 @@ async function updateOrderStatus(orderId, newStatus) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus })
         });
-
         if (!response.ok) {
-            throw new Error('Erro ao atualizar status do pedido.');
+            throw new Error('Erro ao atualizar status do pedido na API.');
         }
-        
-        // Recarrega a lista para refletir alterações
         renderCashierOrders();
+        updateFinances();
     } catch (error) {
         console.error('❌ Erro ao atualizar status:', error);
     }
 }
 
-function showSection(target) {
+// ATUALIZADO: Função agora é assíncrona
+async function showSection(target) {
     ordersSection.classList.add('hidden');
     financesSection.classList.add('hidden');
     navButtons.forEach(btn => btn.classList.remove('active'));
@@ -250,11 +261,11 @@ function showSection(target) {
     if (target === 'orders') {
         ordersSection.classList.remove('hidden');
         document.querySelector('[data-target="orders"]').classList.add('active');
-        renderCashierOrders();
+        await renderCashierOrders();
     } else if (target === 'finances') {
         financesSection.classList.remove('hidden');
         document.querySelector('[data-target="finances"]').classList.add('active');
-        updateFinances();
+        await updateFinances();
     }
 }
 
@@ -269,16 +280,16 @@ navButtons.forEach(button => {
 ordersListContainer.addEventListener('click', (e) => {
     if (e.target.classList.contains('approve-button')) {
         const orderId = e.target.dataset.id;
-        // Quando o caixa aprova, o pedido passa para 'aprovado'
-        // (o cliente que está aguardando em cart.js procura exatamente por 'aprovado')
         updateOrderStatus(orderId, 'aprovado');
     }
 });
 
-expenseForm.addEventListener('submit', handleExpense);
+expenseForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    addExpense(e);
+});
 
+// Inicialização
 document.addEventListener('DOMContentLoaded', () => {
     showSection('orders');
 });
-
-setInterval(renderCashierOrders, 5000);

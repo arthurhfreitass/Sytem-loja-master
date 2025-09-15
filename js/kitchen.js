@@ -23,7 +23,6 @@ async function renderOrders() {
     const orders = await fetchOrdersFromAPI();
     ordersListContainer.innerHTML = '';
     
-    // Corrigido: comparação correta (===) e inclusão dos 3 status
     const ordersToAccept = orders.filter(order => 
         order.status === 'aprovado' || order.status === 'em_preparacao' || order.status === 'pendente'
     );
@@ -36,59 +35,54 @@ async function renderOrders() {
     noOrdersMessage.style.display = 'none';
 
     ordersToAccept.forEach(order => {
+        let itemsHtml = '';
+        order.items.forEach(item => {
+            const toppingsText = Array.isArray(item.toppings) && item.toppings.length > 0
+                ? item.toppings.join(', ')
+                : 'Nenhum';
+
+            // CORRIGIDO: Filtra valores nulos/vazios e junta os extras
+            const filteredExtras = Array.isArray(item.extras)
+                ? item.extras.filter(e => e && (typeof e === "string" || e.name))
+                : [];
+
+            const extrasText = filteredExtras.length > 0
+                ? filteredExtras.map(e => typeof e === "string" ? e : e.name).join(', ')
+                : 'Nenhum';
+
+
+
+
+            itemsHtml += `
+                <li class="order-item">
+                    <span class="order-item-name">${item.name}</span>
+                    <ul class="order-item-details">
+                        <li><strong>Tamanho:</strong> ${item.size ? item.size.name : 'N/A'}</li>
+                        <li><strong>Complementos:</strong> ${toppingsText}</li>
+                        <li><strong>Extras:</strong> ${extrasText}</li>
+                    </ul>
+                </li>
+            `;
+        });
+        
         const orderCard = document.createElement('div');
         orderCard.classList.add('order-card');
-        
-        let actionsHtml = '';
-        if (order.status === 'aprovado' || order.status === 'pendente') {
-            actionsHtml = `<button class="accept-button" data-id="${order.id}">Aceitar Pedido</button>`;
-        } else if (order.status === 'em_preparacao') {
-            actionsHtml = `<button class="finish-button" data-id="${order.id}">Pedido Pronto</button>`;
-        }
-
-        let itemsHtml = '';
-        if (Array.isArray(order.items)) {
-            order.items.forEach(item => {
-                const sizeName = item?.size?.name ?? (typeof item?.size === 'string' ? item.size : 'N/A');
-
-                const toppingsText = Array.isArray(item?.toppings) && item.toppings.length > 0
-                    ? item.toppings.map(t => (typeof t === 'string' ? t : (t?.name ?? t))).filter(Boolean).join(', ')
-                    : 'Nenhum';
-
-                const extrasText = Array.isArray(item?.extras) && item.extras.length > 0
-                    ? item.extras.map(e => (typeof e === 'string' ? e : (e?.name ?? e))).filter(Boolean).join(', ')
-                    : 'Nenhum';
-
-                itemsHtml += `
-                    <li class="order-item-kitchen">
-                        <span class="item-name">${item.name}</span>
-                        <p class="details">
-                            Tamanho: ${sizeName} | 
-                            Complementos: ${toppingsText} | 
-                            Extras: ${extrasText}
-                        </p>
-                    </li>
-                `;
-            });
-        }
-
-        const totalNum = Number(order.total) || 0;
-
         orderCard.innerHTML = `
             <div class="order-header">
                 <h2>Pedido #${order.id}</h2>
-                <span class="order-status">${(order.status || '').toUpperCase()}</span>
+                <span class="order-status">${order.status.toUpperCase()}</span>
             </div>
             <ul class="order-list-items">${itemsHtml}</ul>
-            <p>Total: R$ ${totalNum.toFixed(2)}</p>
-            <p>Pagamento: ${order.payment || '—'}</p>
-            <div class="order-actions">${actionsHtml}</div>
+            <div class="order-actions">
+                <button class="accept-button" data-id="${order.id}">Aceitar Pedido</button>
+            </div>
         `;
         
         ordersListContainer.appendChild(orderCard);
     });
 }
 
+// Atualiza o status do pedido na API
 async function updateOrderStatus(orderId, newStatus) {
     try {
         const response = await fetch(`${API_BASE}/orders/${orderId}/status`, {
@@ -101,7 +95,6 @@ async function updateOrderStatus(orderId, newStatus) {
             throw new Error('Erro ao atualizar status do pedido.');
         }
         
-        // Re-renderiza a lista (o pedido pode ter sido removido/alterado)
         await renderOrders();
     } catch (error) {
         console.error('❌ Erro ao atualizar status:', error);
@@ -114,17 +107,12 @@ ordersListContainer.addEventListener('click', async (e) => {
         const orderId = e.target.dataset.id;
         await updateOrderStatus(orderId, 'em_preparacao');
         console.log(`Pedido ${orderId} aceito e enviado para produção!`);
-        // Redireciona automaticamente para a página de produção sincronizada com a API
         window.location.href = `production.html?id=${orderId}`;
-    } else if (e.target.classList.contains('finish-button')) {
-        const orderId = e.target.dataset.id;
-        await updateOrderStatus(orderId, 'concluido');
-        console.log(`Pedido ${orderId} concluído!`);
     }
 });
 
-// Inicializa o painel
-document.addEventListener('DOMContentLoaded', renderOrders);
-
-// Atualiza a página a cada 5 segundos para simular tempo real
-setInterval(renderOrders, 5000);
+// Inicializa a renderização dos pedidos ao carregar a página
+document.addEventListener('DOMContentLoaded', () => {
+    renderOrders();
+    setInterval(renderOrders, 5000);
+});

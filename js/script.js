@@ -158,7 +158,7 @@ function updateSelection() {
     }
 }
 
-// Adiciona item ao carrinho
+
 function addToCart() {
     const selectedSizeRadio = document.querySelector('input[name="acai-size"]:checked');
     if (!selectedSizeRadio) return;
@@ -166,11 +166,17 @@ function addToCart() {
     const sizeName = selectedSizeRadio.dataset.name;
     const sizePrice = parseFloat(selectedSizeRadio.dataset.price);
     
-    const selectedIncluded = Array.from(document.querySelectorAll('input[name="acai-included"]:checked')).map(checkbox => checkbox.dataset.name);
-    const selectedExtras = Array.from(document.querySelectorAll('input[name="acai-extra"]:checked')).map(checkbox => ({
-        name: checkbox.dataset.name,
-        price: parseFloat(checkbox.dataset.price)
-    }));
+    const selectedIncluded = Array.from(document.querySelectorAll('input[name="acai-included"]:checked'))
+        .map(checkbox => checkbox.dataset.name)
+        .filter(name => name); // Garante que apenas nomes válidos sejam adicionados
+
+    // CORRIGIDO: Coleta apenas os extras que estão marcados
+    const selectedExtras = Array.from(document.querySelectorAll('input[name="acai-extra"]:checked'))
+        .filter(checkbox => checkbox.dataset.name) // Filtra para garantir que o nome exista
+        .map(checkbox => ({
+            name: checkbox.dataset.name,
+            price: parseFloat(checkbox.dataset.price)
+        }));
 
     const extrasPrice = selectedExtras.reduce((sum, extra) => sum + extra.price, 0);
     const finalPrice = sizePrice + extrasPrice;
@@ -178,14 +184,13 @@ function addToCart() {
     const newOrder = {
         id: Math.random().toString(16).slice(2),
         name: "Açaí",
-
         size: {
             name: sizeName,
             price: sizePrice
         },
         price: finalPrice,
         toppings: selectedIncluded,
-        extras: selectedExtras.map(e => e.name)
+        extras: selectedExtras
     };
     
     let cart = JSON.parse(localStorage.getItem('tempCart')) || [];

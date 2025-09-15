@@ -36,7 +36,9 @@ function createCartItemHTML(item, index, className = 'cart-item') {
     const { name, price, size, toppings = [], extras = [] } = item;
     const formattedPrice = Number(price).toFixed(2).replace('.', ',');
     const toppingsText = toppings.length ? toppings.join(', ') : 'Nenhum';
-    const extrasText = extras.length ? extras.map(e => e.name).join(', ') : 'Nenhum';
+    const extrasText = Array.isArray(extras) && extras.length > 0
+    ? extras.map(e => e.name).join(', ')
+    : 'Nenhum';
 
     const li = document.createElement('li');
     li.classList.add(className);
@@ -144,6 +146,7 @@ async function finalizeOrder(paymentMethod) {
             name: i.name, 
             price: Number(i.price), 
             quantity: 1, 
+            size: i.size, // CORRIGIDO: Adiciona o tamanho do copo
             toppings: i.toppings, 
             extras: i.extras.map(e => e.name) 
         })),
