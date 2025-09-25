@@ -97,46 +97,45 @@ function renderCharts(totalRevenue, totalExpenses, balance) {
 }
 
 // NOVO: Função para renderizar o histórico de despesas
-function renderExpenseHistory() {
-    const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+function renderExpenseHistory(expenses) {
     expenseHistoryContainer.innerHTML = '';
-    
     if (expenses.length === 0) {
         noExpensesMessage.style.display = 'block';
-        return;
+    } else {
+        noExpensesMessage.style.display = 'none';
+        expenses.forEach(expense => {
+            const expenseItem = document.createElement('li');
+            expenseItem.classList.add('expense-item');
+            expenseItem.innerHTML = `
+                <span>${expense.description}</span>
+                <span>- R$ ${expense.amount.toFixed(2)}</span>
+            `;
+            expenseHistoryContainer.appendChild(expenseItem);
+        });
     }
-
-    noExpensesMessage.style.display = 'none';
-
-    expenses.forEach((expense) => {
-        const expenseItem = document.createElement('div');
-        expenseItem.classList.add('expense-item');
-        expenseItem.innerHTML = `
-            <span>${expense.description}</span>
-            <span class="expense-amount">- R$ ${expense.amount.toFixed(2)}</span>
-        `;
-        expenseHistoryContainer.appendChild(expenseItem);
-    });
 }
 
 // ATUALIZADO: Agora busca os pedidos da API e chama a função de gráficos
 async function updateFinances() {
-    const allOrders = await fetchOrdersFromAPI();
-    const approvedOrders = allOrders.filter(order => order.status === 'aprovado' || order.status === 'pago');
+    const totalRevenue = parseFloat(localStorage.getItem('totalRevenue')) || 0;
     const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
 
-    const totalRevenue = approvedOrders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
-    const totalExpenses = expenses.reduce((sum, expense) => sum + (Number(expense.amount) || 0), 0);
+    const totalExpenses = expenses.reduce((sum, item) => sum + item.amount, 0);
     const balance = totalRevenue - totalExpenses;
 
+    // Atualiza os displays na interface
     totalRevenueDisplay.textContent = `R$ ${totalRevenue.toFixed(2)}`;
     totalExpensesDisplay.textContent = `R$ ${totalExpenses.toFixed(2)}`;
     balanceDisplay.textContent = `R$ ${balance.toFixed(2)}`;
 
-    renderExpenseHistory();
+    // Renderiza o histórico de despesas
+    renderExpenseHistory(expenses);
+
+    // Atualiza os gráficos (se houver)
+    if (balanceChart) balanceChart.destroy();
+    if (goalChart) goalChart.destroy();
     renderCharts(totalRevenue, totalExpenses, balance);
 }
-
 // NOVO: Função para adicionar despesa
 // cashier.js
 
@@ -242,9 +241,24 @@ async function updateOrderStatus(orderId, newStatus) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus })
         });
+
         if (!response.ok) {
-            throw new Error('Erro ao atualizar status do pedido na API.');
+            throw new Error('❌ Erro ao atualizar status do pedido na API.');
         }
+
+        // NOVO: Adiciona a lógica para salvar a receita no localStorage
+        if (newStatus === 'aprovado') {
+            const orderResponse = await fetch(`${API_BASE}/orders/${orderId}`);
+            if (!orderResponse.ok) {
+                throw new Error('❌ Erro ao buscar detalhes do pedido.');
+            }
+            const order = await orderResponse.json();
+
+            let revenue = parseFloat(localStorage.getItem('totalRevenue')) || 0;
+            revenue += order.totalPrice;
+            localStorage.setItem('totalRevenue', revenue);
+        }
+
         renderCashierOrders();
         updateFinances();
     } catch (error) {
@@ -286,7 +300,20 @@ ordersListContainer.addEventListener('click', (e) => {
 
 expenseForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    addExpense(e);
+    const description = document.getElementById('expense-description').value;
+    const amount = parseFloat(document.getElementById('expense-amount').value);
+
+    if (description && !isNaN(amount) && amount > 0) {
+        let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+        expenses.push({ description, amount, date: new Date().toISOString() });
+        localStorage.setItem('expenses', JSON.stringify(expenses));
+    
+        // Atualiza a interface para mostrar a nova despesa
+        updateFinances();
+        e.target.reset(); // Limpa o formulário
+    } else {
+        alert('Por favor, preencha a descrição e um valor válido para a despesa.');
+    }
 });
 
 // Inicialização
