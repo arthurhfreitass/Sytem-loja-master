@@ -117,8 +117,9 @@ function renderExpenseHistory(expenses) {
 
 // ATUALIZADO: Agora busca os pedidos da API e chama a função de gráficos
 async function updateFinances() {
-    const totalRevenue = parseFloat(localStorage.getItem('totalRevenue')) || 0;
-    const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+    const totalRevenue = parseFloat(localStorage.getItem('totalRevenue')) || 0; 
+    const expenses = JSON.parse(localStorage.getItem('expenses')) || []; 
 
     const totalExpenses = expenses.reduce((sum, item) => sum + item.amount, 0);
     const balance = totalRevenue - totalExpenses;
@@ -250,17 +251,28 @@ async function updateOrderStatus(orderId, newStatus) {
         if (newStatus === 'aprovado') {
             const orderResponse = await fetch(`${API_BASE}/orders/${orderId}`);
             if (!orderResponse.ok) {
-                throw new Error('❌ Erro ao buscar detalhes do pedido.');
-            }
-            const order = await orderResponse.json();
+                // NÃO VAMOS interromper, apenas avisar, pois a falha é no financeiro local, não no pedido.
+                console.warn('⚠️ Erro ao buscar detalhes do pedido para contabilidade local. Pedido foi aprovado, mas a receita não foi somada.');
+            } else {
+                const order = await orderResponse.json();
 
-            let revenue = parseFloat(localStorage.getItem('totalRevenue')) || 0;
-            revenue += order.totalPrice;
-            localStorage.setItem('totalRevenue', revenue);
-        }
+                // 1. GARANTE que o valor total (String) vindo da API é lido como float.
+                const orderPrice = parseFloat(order.totalPrice) || 0;
+                
+                // 2. GARANTE que o valor total de receita (do localStorage) é lido como float.
+                let revenue = parseFloat(localStorage.getItem('totalRevenue')) || 0;
 
+                // SOMA dos dois valores (agora ambos são números)
+                revenue += orderPrice;
+
+                // 3. FIXA DUAS CASAS DECIMAIS e SALVA DE VOLTA no localStorage (como String)
+                localStorage.setItem('totalRevenue', revenue.toFixed(2));
+            } // <--- CHAVE DE FECHAMENTO AQUI!
+        } // <--- CHAVE DE FECHAMENTO AQUI!
+
+        // ESTAS DUAS LINHAS AGORA ESTÃO NO LUGAR CERTO: DENTRO DO try, MAS FORA DO IF DA CONTABILIDADE.
         renderCashierOrders();
-        updateFinances();
+        updateFinances(); 
     } catch (error) {
         console.error('❌ Erro ao atualizar status:', error);
     }
