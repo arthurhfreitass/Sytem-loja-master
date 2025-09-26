@@ -4,28 +4,51 @@ const acaiProduct = {
     name: "Açaí",
     sizes: [
         { 
-            name: "Pequeno", 
-            price: 0.01,
+            name: "Pequeno (200ML)", 
+            price: 9.00,
             description: "O açaí pequeno é ideal para quem quer um lanche rápido e refrescante. Inclui duas opções de acompanhamentos.",
             includedToppingsCount: 2,
             availableIncludedToppings: [
                 { name: "Leite em pó" },
                 { name: "Granola" },
-                { name: "Paçoca" }
+                { name: "Banana" },
+                { name: "leite Condensado" },
+                { name: "Farinha de Amendoim " },
+                { name: "Sucrilhos" },
+                { name: "Chocoball" },
             ]
         },
         { 
-            name: "Grande", 
-            price: 15.00,
+            name: "Grande (300ML)", 
+            price: 12.00,
             description: "O tamanho perfeito para um lanche mais completo. Inclui três opções de acompanhamentos.",
             includedToppingsCount: 3,
             availableIncludedToppings: [
                 { name: "Leite em pó" },
                 { name: "Granola" },
-                { name: "Paçoca" },
                 { name: "Banana" },
-                { name: "Morango" }
+                { name: "leite Condensado" },
+                { name: "Farinha de Amendoim " },
+                { name: "Sucrilhos" },
+                { name: "Chocoball" },
             ]
+            
+        },
+        { 
+            name: "Premium (5 Adicionais)", 
+            price: 16.00,
+            description: "O tamanho perfeito para um lanche mais completo. Inclui cinco opções de acompanhamentos.",
+            includedToppingsCount: 5,
+            availableIncludedToppings: [
+                { name: "Leite em pó" },
+                { name: "Granola" },
+                { name: "Banana" },
+                { name: "leite Condensado" },
+                { name: "Farinha de Amendoim " },
+                { name: "Sucrilhos" },
+                { name: "Chocoball" },
+            ]
+            
         },
     ],
     extras: [
