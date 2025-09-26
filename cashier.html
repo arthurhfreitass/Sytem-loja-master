@@ -236,13 +236,14 @@
             
             <div class="finance-card">
                 <h2>Registro de Gastos</h2>
+                <!-- FORMULÁRIO CORRIGIDO, COM O ID DO CAMPO CORRETO -->
                 <form id="expense-form" class="expense-form">
                     <input type="text" id="expense-description" placeholder="Descrição do Gasto" required>
-                    <input type="number" id="expense-value" placeholder="Valor (R$)" step="0.01" required>
+                    <input type="number" id="expense-amount" placeholder="Valor (R$)" step="0.01" required>
                     <button type="submit">Registrar Gasto</button>
                 </form>
             </div>
-
+            
             <div class="finance-card">
                 <h2>Histórico de Gastos</h2>
                 <div id="expense-history-container" class="expense-history">
@@ -252,7 +253,7 @@
         </section>
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="[https://cdn.jsdelivr.net/npm/chart.js](https://cdn.jsdelivr.net/npm/chart.js)"></script>
     <script src="js/cashier.js"></script>
 </body>
 </html>
