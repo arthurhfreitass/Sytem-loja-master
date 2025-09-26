@@ -62,17 +62,37 @@
     }
 
     .info-list {
-      margin: 1rem 0;
+      margin: 0.5rem 0 0 0;
       padding: 0;
       list-style: none;
     }
 
     .info-list li {
-      padding: 0.6rem 0.8rem;
-      margin-bottom: 0.6rem;
+      padding: 0.4rem 0.6rem;
+      margin-bottom: 0.4rem;
       background: #f9fafb;
+      border-radius: 6px;
+      border-left: 4px solid #7c3aed;
+      font-size: 0.95rem;
+    }
+
+    /* NOVO: Estilo para cada item individual do pedido */
+    .item-card {
+      border: 1px solid #e0e0e0;
       border-radius: 8px;
-      border-left: 5px solid #7c3aed;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      background-color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .item-card h4 {
+        color: #4c1d95;
+        margin-top: 0;
+        border-bottom: 2px solid #f4f6f9;
+        padding-bottom: 0.5rem;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
     }
 
     button {
@@ -152,19 +172,49 @@
       }
     }
 
+    /*
+     * NOVO: Renderiza todos os itens do pedido
+     * Agora itera sobre 'order.items' para exibir cada item separadamente.
+     */
     function renderOrderInfo(order) {
-      const item = order.items[0];
-      const tamanho = item?.size?.name ?? (typeof item?.size === "string" ? item.size : "500ml");
-      const toppings = Array.isArray(item.toppings) ? item.toppings.map(t => (typeof t === "string" ? t : (t?.name ?? t))).join(", ") : "Nenhum";
-      const extras = Array.isArray(item.extras) ? item.extras.map(e => (typeof e === "string" ? e : (e?.name ?? e))).join(", ") : "Nenhum";
+      let itemsHtml = ''; // Variável para armazenar o HTML de todos os itens
 
+      // Itera sobre cada item do array 'order.items'
+      order.items.forEach((item, index) => {
+        const itemNumber = index + 1;
+        const itemName = item?.name ?? `Item ${itemNumber}`; // Usa nome se existir
+
+        // Função auxiliar para formatar listas de ingredientes (toppings/extras)
+        const formatIngredients = (ingredients) => {
+          if (!Array.isArray(ingredients)) return "Nenhum";
+          
+          return ingredients
+            .map(t => (typeof t === "string" ? t : (t?.name ?? t)))
+            .filter(name => name)
+            .join(", ");
+        };
+        
+        const tamanho = item?.size?.name ?? (typeof item?.size === "string" ? item.size : "N/A");
+        const toppings = formatIngredients(item.toppings);
+        const extras = formatIngredients(item.extras);
+        
+        // Constrói o HTML para o item atual
+        itemsHtml += `
+          <div class="item-card">
+            <h4>${itemName}</h4>
+            <ul class="info-list">
+              <li><strong>Tamanho:</strong> ${tamanho}</li>
+              <li><strong>Essenciais:</strong> ${toppings}</li>
+              <li><strong>Extras:</strong> ${extras}</li>
+            </ul>
+          </div>
+        `;
+      });
+      
+      // Insere o HTML de todos os itens no elemento 'orderInfo'
       orderInfo.innerHTML = `
-        <h3>Informações do Pedido</h3>
-        <ul class="info-list">
-          <li><strong>Tamanho:</strong> ${tamanho}</li>
-          <li><strong>Essenciais:</strong> ${toppings}</li>
-          <li><strong>Extras:</strong> ${extras}</li>
-        </ul>
+        <h3>Detalhes dos Itens</h3>
+        ${itemsHtml}
       `;
     }
 

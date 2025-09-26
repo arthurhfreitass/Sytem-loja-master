@@ -45,7 +45,8 @@ const addToCartButton = document.getElementById('add-to-cart-button');
 const addToCartPriceSpan = document.getElementById('add-to-cart-price');
 const cartItemCountEl = document.getElementById('cart-item-count');
 const checkoutFooterButton = document.getElementById('checkout-footer-button');
-
+const includedGroupContainer = document.getElementById('included-group-container');
+const extrasGroupContainer = document.getElementById('extras-group-container');
 // Renderiza opções
 function renderOptions() {
     sizeOptionsContainer.innerHTML = '';
@@ -102,23 +103,25 @@ function updateIncludedToppings() {
 }
 
 // Atualiza seleção e preço
+// Atualiza seleção e preço
 function updateSelection() {
     const selectedSizeRadio = document.querySelector('input[name="acai-size"]:checked');
     
     if (selectedSizeRadio) {
+        // Se um tamanho foi selecionado:
+        // 1. Mostrar os botões e os grupos de opções
         addToCartButton.style.display = 'flex';
-    } else {
-        addToCartButton.style.display = 'none';
-        productDescriptionEl.textContent = '';
-    }
-    
-    if (selectedSizeRadio) {
+        includedGroupContainer.classList.remove('hidden');
+        extrasGroupContainer.classList.remove('hidden');
+
+        // 2. Calcular o preço e atualizar a descrição
         let totalPrice = parseFloat(selectedSizeRadio.dataset.price);
         const sizeIndex = parseInt(selectedSizeRadio.dataset.sizeIndex, 10);
         const selectedSizeData = acaiProduct.sizes[sizeIndex];
 
         productDescriptionEl.textContent = selectedSizeData.description;
 
+        // 3. Lógica para limitar a seleção de inclusos
         const includedCheckboxes = document.querySelectorAll('input[name="acai-included"]');
         const checkedIncluded = document.querySelectorAll('input[name="acai-included"]:checked').length;
         
@@ -133,12 +136,22 @@ function updateSelection() {
             }
         });
 
+        // 4. Somar o preço dos extras
         document.querySelectorAll('input[name="acai-extra"]:checked').forEach(checkbox => {
             totalPrice += parseFloat(checkbox.dataset.price);
         });
         
+        // 5. Atualizar o preço no botão
         addToCartPriceSpan.textContent = `R$ ${totalPrice.toFixed(2)}`;
     } else {
+        // Se NENHUM tamanho foi selecionado:
+        // 1. Esconder os botões e os grupos de opções
+        addToCartButton.style.display = 'none';
+        includedGroupContainer.classList.add('hidden');
+        extrasGroupContainer.classList.add('hidden');
+
+        // 2. Limpar a descrição e o preço
+        productDescriptionEl.textContent = '';
         addToCartPriceSpan.textContent = `R$ 0,00`;
     }
 }
@@ -212,9 +225,18 @@ function updateCartCount() {
 
 // Eventos
 sizeOptionsContainer.addEventListener('change', () => {
+
     updateIncludedToppings();
     updateSelection();
+
+    if (includedGroupContainer) {
+        includedGroupContainer.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'     
+        });
+    }
 });
+
 includedOptionsContainer.addEventListener('change', updateSelection);
 extraOptionsContainer.addEventListener('change', updateSelection);
 addToCartButton.addEventListener('click', addToCart);
@@ -222,6 +244,9 @@ addToCartButton.addEventListener('click', addToCart);
 document.addEventListener('DOMContentLoaded', () => {
     renderOptions();
     updateCartCount();
+    includedGroupContainer.classList.add('hidden');
+    extrasGroupContainer.classList.add('hidden');
+    
     updateSelection();
 });
 // No seu script.js, ao lidar com o clique nas opções:
