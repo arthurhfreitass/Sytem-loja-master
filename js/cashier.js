@@ -36,22 +36,24 @@ async function fetchOrdersFromAPI() {
     }
 }
 
-// NOVO: Função para renderizar os gráficos
+// ATUALIZADO: Função para renderizar os gráficos
 function renderCharts(totalRevenue, totalExpenses, balance) {
+    // Destrói gráficos anteriores para evitar duplicação ou falha de atualização
     if (balanceChart) balanceChart.destroy();
     if (goalChart) goalChart.destroy();
 
+    // Gráfico de Balanço (Barra)
     balanceChart = new Chart(balanceChartCanvas, {
         type: 'bar',
         data: {
             labels: ['Receita', 'Despesas', 'Saldo'],
             datasets: [{
-                label: 'Valores Financeiros',
+                label: 'Valores Financeiros (R$)',
                 data: [totalRevenue, totalExpenses, balance],
                 backgroundColor: [
-                    'rgba(75, 192, 192, 0.6)',
-                    'rgba(255, 99, 132, 0.6)',
-                    'rgba(54, 162, 235, 0.6)'
+                    'rgba(75, 192, 192, 0.6)', // Receita
+                    'rgba(255, 99, 132, 0.6)', // Despesas
+                    'rgba(54, 162, 235, 0.6)'  // Saldo
                 ],
                 borderColor: [
                     'rgba(75, 192, 192, 1)',
@@ -69,6 +71,7 @@ function renderCharts(totalRevenue, totalExpenses, balance) {
         }
     });
 
+    // Gráfico de Meta (Doughnut)
     const profitGoal = 500;
     const remaining = Math.max(0, profitGoal - totalRevenue);
 
@@ -92,6 +95,12 @@ function renderCharts(totalRevenue, totalExpenses, balance) {
         },
         options: {
             responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: `Meta: R$ ${profitGoal.toFixed(2)}`
+                }
+            }
         }
     });
 }
@@ -115,16 +124,19 @@ function renderExpenseHistory(expenses) {
     }
 }
 
-// ATUALIZADO: Agora busca os pedidos da API e chama a função de gráficos
+// ATUALIZADO: Agora lê os dados financeiros do localStorage e renderiza gráficos
 async function updateFinances() {
 
+    // Lê a receita total, garantindo que seja um número (float), ou 0 se null
     const totalRevenue = parseFloat(localStorage.getItem('totalRevenue')) || 0; 
+    // Lê a lista de despesas, ou um array vazio se null
     const expenses = JSON.parse(localStorage.getItem('expenses')) || []; 
 
+    // Calcula o total das despesas
     const totalExpenses = expenses.reduce((sum, item) => sum + item.amount, 0);
     const balance = totalRevenue - totalExpenses;
 
-    // Atualiza os displays na interface
+    // Atualiza os displays na interface (toFixed(2) para formatação de moeda)
     totalRevenueDisplay.textContent = `R$ ${totalRevenue.toFixed(2)}`;
     totalExpensesDisplay.textContent = `R$ ${totalExpenses.toFixed(2)}`;
     balanceDisplay.textContent = `R$ ${balance.toFixed(2)}`;
@@ -132,42 +144,9 @@ async function updateFinances() {
     // Renderiza o histórico de despesas
     renderExpenseHistory(expenses);
 
-    // Atualiza os gráficos (se houver)
-    if (balanceChart) balanceChart.destroy();
-    if (goalChart) goalChart.destroy();
+    // Atualiza os gráficos
     renderCharts(totalRevenue, totalExpenses, balance);
 }
-// NOVO: Função para adicionar despesa
-// cashier.js
-
-// ... (código existente)
-
-// NOVO: Função para adicionar despesa
-function addExpense(e) {
-    const description = document.getElementById('expense-description').value;
-    // CORRIGIDO: Referência do ID 'expense-value' para 'expense-amount'
-    const amount = parseFloat(document.getElementById('expense-value').value);
-
-    if (description && amount > 0) {
-        const newExpense = {
-            description,
-            amount,
-            date: new Date().toISOString()
-        };
-
-        const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
-        expenses.push(newExpense);
-        localStorage.setItem('expenses', JSON.stringify(expenses));
-
-        e.target.reset();
-        updateFinances();
-    } else {
-        alert('Por favor, preencha a descrição e o valor da despesa.');
-    }
-}
-
-// ... (restante do código)
-
 
 // Renderiza os pedidos para o painel do caixa.
 async function renderCashierOrders() {
@@ -213,7 +192,8 @@ async function renderCashierOrders() {
             });
         }
 
-        const totalNum = Number(order.total) || 0;
+        // Correção de acesso ao total (usando order.totalPrice ou order.total)
+        const totalNum = Number(order.totalPrice || order.total) || 0; 
         const statusDisplay = order.status ? order.status.toUpperCase() : 'PENDENTE';
 
         const orderCard = document.createElement('div');
@@ -235,8 +215,10 @@ async function renderCashierOrders() {
     });
 }
 
+// ATUALIZADO: Função com lógica de contabilidade local
 async function updateOrderStatus(orderId, newStatus) {
     try {
+        // 1. Atualiza o status do pedido na API (para a Cozinha e Cliente)
         const response = await fetch(`${API_BASE}/orders/${orderId}/status`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
@@ -247,30 +229,29 @@ async function updateOrderStatus(orderId, newStatus) {
             throw new Error('❌ Erro ao atualizar status do pedido na API.');
         }
 
-        // NOVO: Adiciona a lógica para salvar a receita no localStorage
+        // 2. Lógica para salvar a receita no localStorage (apenas se for 'aprovado')
         if (newStatus === 'aprovado') {
             const orderResponse = await fetch(`${API_BASE}/orders/${orderId}`);
             if (!orderResponse.ok) {
-                // NÃO VAMOS interromper, apenas avisar, pois a falha é no financeiro local, não no pedido.
                 console.warn('⚠️ Erro ao buscar detalhes do pedido para contabilidade local. Pedido foi aprovado, mas a receita não foi somada.');
             } else {
                 const order = await orderResponse.json();
 
-                // 1. GARANTE que o valor total (String) vindo da API é lido como float.
-                const orderPrice = parseFloat(order.totalPrice) || 0;
+                // Garante que o valor total é lido como um número float
+                const orderPrice = parseFloat(order.totalPrice || order.total) || 0; // Tenta 'totalPrice' e 'total'
                 
-                // 2. GARANTE que o valor total de receita (do localStorage) é lido como float.
+                // Lê a receita total (garantindo que é lido como float)
                 let revenue = parseFloat(localStorage.getItem('totalRevenue')) || 0;
 
-                // SOMA dos dois valores (agora ambos são números)
+                // Soma e atualiza
                 revenue += orderPrice;
 
-                // 3. FIXA DUAS CASAS DECIMAIS e SALVA DE VOLTA no localStorage (como String)
+                // Salva de volta no localStorage, formatando para 2 casas decimais (como string)
                 localStorage.setItem('totalRevenue', revenue.toFixed(2));
-            } // <--- CHAVE DE FECHAMENTO AQUI!
-        } // <--- CHAVE DE FECHAMENTO AQUI!
+            }
+        }
 
-        // ESTAS DUAS LINHAS AGORA ESTÃO NO LUGAR CERTO: DENTRO DO try, MAS FORA DO IF DA CONTABILIDADE.
+        // 3. Atualiza a interface do caixa após a mudança
         renderCashierOrders();
         updateFinances(); 
     } catch (error) {
@@ -310,19 +291,42 @@ ordersListContainer.addEventListener('click', (e) => {
     }
 });
 
+// CORRIGIDO: Event Listener do formulário de despesas
+// Agora usa as referências corretas e o código defensivo para evitar o TypeError.
 expenseForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const description = document.getElementById('expense-description').value;
-    const amount = parseFloat(document.getElementById('expense-amount').value);
 
+    // Referências aos elementos do formulário (GARANTINDO QUE OS IDs ESTÃO CORRETOS NO HTML)
+    const expenseDescriptionEl = document.getElementById('expense-description');
+    const expenseAmountEl = document.getElementById('expense-amount'); // ID CORRETO
+
+    // Verifica se os elementos foram encontrados (evitando o TypeError: Cannot read properties of null)
+    if (!expenseDescriptionEl || !expenseAmountEl) {
+        console.error('❌ Erro: Elementos do formulário de despesas não encontrados no HTML. Verifique os IDs "expense-description" e "expense-amount".');
+        alert('Erro interno: Faltando IDs no HTML para o formulário de despesas.');
+        return;
+    }
+
+    const description = expenseDescriptionEl.value.trim();
+    const amount = parseFloat(expenseAmountEl.value);
+
+    // Validação dos dados
     if (description && !isNaN(amount) && amount > 0) {
         let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
-        expenses.push({ description, amount, date: new Date().toISOString() });
+        
+        // Adiciona a nova despesa
+        expenses.push({ 
+            description, 
+            amount: amount, // 'amount' já é um float
+            date: new Date().toISOString() 
+        });
+        
+        // Salva a lista atualizada
         localStorage.setItem('expenses', JSON.stringify(expenses));
     
-        // Atualiza a interface para mostrar a nova despesa
+        // Atualiza a interface e limpa o formulário
         updateFinances();
-        e.target.reset(); // Limpa o formulário
+        e.target.reset(); 
     } else {
         alert('Por favor, preencha a descrição e um valor válido para a despesa.');
     }
