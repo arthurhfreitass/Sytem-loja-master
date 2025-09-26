@@ -137,32 +137,31 @@ async function saveOrderToAPI(orderData) {
 async function finalizeOrder(paymentMethod) {
     if (cart.length === 0) {
         showToast("Seu carrinho está vazio!");
+        // Garante que o botão PIX seja reativado se o carrinho estiver vazio
+        const pixButton = document.querySelector('.payment-option[data-type="pix"]');
+        if (pixButton) {
+            pixButton.disabled = false;
+            pixButton.textContent = 'PIX';
+        }
         return;
     }
-    
-    // O orderId será obtido após o envio para a API.
+
+    hideModal(paymentModal);
+    showToast("Enviando pedido...");
+
+    const total = cart.reduce((sum, item) => sum + item.price, 0);
+
     const orderPayload = {
-        items: cart.map(i => ({ 
-            name: i.name, 
-            price: Number(i.price), 
-            quantity: 1, 
-            size: i.size, // CORRIGIDO: Adiciona o tamanho do copo
-            toppings: i.toppings, 
-            extras: i.extras.map(e => e.name) 
-        })),
-        total: cart.reduce((sum, item) => sum + Number(item.price), 0),
-        payment: paymentMethod
+        items: cart,
+        totalPrice: total,
+        paymentMethod: paymentMethod,
+        // CORREÇÃO: Define o status com base no método de pagamento
+        // 'pendente' é o status para PIX e precisa ser mudado para 'aprovado' para registrar no financeiro.
+        // 'pendente_caixa' é para dinheiro/cartão no local.
+        status: (paymentMethod === 'caixa' ? 'pendente_caixa' : 'pendente') 
     };
 
     try {
-        // CORREÇÃO: Define o status com base no método de pagamento
-        if (paymentMethod === 'caixa') {
-            orderPayload.status = 'pendente_caixa';
-        } else {
-            orderPayload.status = 'pendente';
-        }
-
-        // Envia o pedido para a API.
         const response = await fetch(`${API_BASE}/orders`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -170,23 +169,36 @@ async function finalizeOrder(paymentMethod) {
         });
 
         if (!response.ok) {
-            throw new Error('Erro ao criar o pedido.');
+            throw new Error('Falha ao enviar o pedido para a API.');
         }
 
         const data = await response.json();
         const orderId = data.orderId;
 
         localStorage.removeItem('tempCart');
-        renderCart();
-        
+        renderCart(); // Limpa a visualização do carrinho
+
         if (paymentMethod === 'caixa') {
             await startCashierPaymentFlow(orderId);
         } else if (paymentMethod === 'pix') {
+            // Reativa o botão antes de chamar a criação do PIX
+            const pixButton = document.querySelector('.payment-option[data-type="pix"]');
+            if (pixButton) {
+                pixButton.disabled = false;
+                pixButton.textContent = 'PIX';
+            }
             await createPixPayment(orderId, orderPayload);
         }
     } catch (error) {
         console.error("❌ Erro ao finalizar pedido:", error);
         showToast("❌ Erro ao finalizar o pedido. Tente novamente.");
+
+        // NOVO: Reativa o botão PIX em caso de erro na finalização
+        const pixButton = document.querySelector('.payment-option[data-type="pix"]');
+        if (pixButton) {
+            pixButton.disabled = false;
+            pixButton.textContent = 'PIX';
+        }
     }
 }
 
@@ -330,7 +342,17 @@ confirmReviewButton.addEventListener('click', () => {
     showModal(paymentModal);
 });
 paymentOptions.forEach(button => {
-    button.addEventListener('click', e => finalizeOrder(e.target.dataset.type));
+    button.addEventListener('click', e => {
+        const paymentType = e.target.dataset.type;
+        
+        // NOVO: Adiciona o estado de carregamento para PIX antes de chamar a função
+        if (paymentType === 'pix') {
+            e.target.disabled = true;
+            e.target.textContent = 'Carregando...'; // Altera o texto do botão
+        }
+        
+        finalizeOrder(paymentType);
+    });
 });
 closeButtons.forEach(button => {
     button.addEventListener('click', e => hideModal(e.target.closest('.modal')));
