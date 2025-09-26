@@ -4,7 +4,7 @@ const acaiProduct = {
     name: "Açaí",
     sizes: [
         { 
-            name: "Pequeno (300ml)", 
+            name: "Pequeno", 
             price: 0.01,
             description: "O açaí pequeno é ideal para quem quer um lanche rápido e refrescante. Inclui duas opções de acompanhamentos.",
             includedToppingsCount: 2,
@@ -15,7 +15,7 @@ const acaiProduct = {
             ]
         },
         { 
-            name: "Médio (500ml)", 
+            name: "Grande", 
             price: 15.00,
             description: "O tamanho perfeito para um lanche mais completo. Inclui três opções de acompanhamentos.",
             includedToppingsCount: 3,
@@ -27,26 +27,11 @@ const acaiProduct = {
                 { name: "Morango" }
             ]
         },
-        { 
-            name: "Grande (700ml)", 
-            price: 20.00,
-            description: "Açaí grande para matar a sua fome! Inclui cinco opções de acompanhamentos.",
-            includedToppingsCount: 5,
-            availableIncludedToppings: [
-                { name: "Leite em pó" },
-                { name: "Granola" },
-                { name: "Paçoca" },
-                { name: "Banana" },
-                { name: "Morango" },
-                { name: "Confete" },
-                { name: "Gotas de chocolate" }
-            ]
-        }
     ],
     extras: [
-        { name: "Leite condensado", price: 2.50 },
-        { name: "Creme de Ninho", price: 3.00 },
-        { name: "Creme de Ovomaltine", price: 3.50 }
+        { name: "Creme de Ninho com Nutela", price: 3.00 },
+        { name: "M&M", price: 3.00 },
+        { name: "JuJuba", price: 3.00 }
     ]
 };
 
